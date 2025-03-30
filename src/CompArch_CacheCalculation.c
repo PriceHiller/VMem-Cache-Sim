@@ -1,7 +1,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 // cache calculation
 
@@ -17,13 +16,8 @@ double calculateImplementationMemorySize(int cacheSize, int overheadSize) {
     return cacheSize + overheadSize;
 }
 
-int calculateTagSize(int cacheBits, int indexSize, int offsetSize) {
-    if (0 < cacheBits && cacheBits <= 16) { // 16-bit address space
-        return 16 - indexSize - offsetSize;
-    } else if (16 < cacheBits && cacheBits <= 32) { // 32-bit address space
-        return 32 - indexSize - offsetSize;
-    }
-    return 64 - indexSize - offsetSize; // 64-bit address space
+int calculateTagSize(int physMem, int indexSize, int offsetSize) {
+    return log2f(physMem) - indexSize - offsetSize;
 }
 
 int calculateOverheadSize(int numBlocks, int tagSize) {
@@ -31,13 +25,13 @@ int calculateOverheadSize(int numBlocks, int tagSize) {
     return overhead / 8;
 }
 
-void calculateCacheValues(int cacheSize, int blockSize, int associativity) {
+void calculateCacheValues(int cacheSize, int blockSize, int associativity, int physMem) {
     int cacheBits = log2f(cacheSize);
     int sets = calculateSets(cacheSize, blockSize, associativity);
     int numBlocks = calculateBlocks(cacheSize, blockSize);
     int indexSize = calculateIndexSize(sets);
     int offsetSize = calculateOffsetSize(blockSize);
-    int tagSize = calculateTagSize(cacheBits, indexSize, offsetSize);
+    int tagSize = calculateTagSize(physMem, indexSize, offsetSize);
     int overheadSize = calculateOverheadSize(numBlocks, tagSize);
     int implementMemorySize =
         calculateImplementationMemorySize(cacheSize, overheadSize);
@@ -65,8 +59,9 @@ int main(int argc, char *argv[]) {
     int cacheSize = atoi(argv[1]) * pow(2, 10);
     int blockSize = atoi(argv[2]);
     int associativity = atoi(argv[3]);
+    int physMem = 128 * pow(2, 20); // 128 mb in example
 
-    calculateCacheValues(cacheSize, blockSize, associativity);
+    calculateCacheValues(cacheSize, blockSize, associativity, physMem);
 
     return 0;
 }
