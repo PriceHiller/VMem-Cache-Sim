@@ -1,0 +1,6 @@
+# Ignore clangd cache file
+*.cache
+# Ignore LLVM precompiled header files
+*.pch
+# Ignore LLVM/clang generated compilation files
+compile_commands.json
