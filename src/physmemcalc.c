@@ -16,19 +16,14 @@ void calculateMemoryStats(int physmem, int os, int files) {
     // # of virtual pages per process
     int pages = VIRTUAL_ADDRESS_SPACE_BYTES / PAGE_SIZE;
 
-    // Page Table Entry (PTE) size is given as 19 bits.
     int pteSizeBits = 19;
     // total RAM needed 
     int pageTable = (pages * pteSizeBits / 8) * files;
 
     printf("----- Physical Memory & Page Table Calculations -----\n");
-    printf("Physical Memory: %d MB (%d bytes)\n", physmem, physBytes);
     printf("Number of Physical Pages: %d\n", numPages);
-    printf("OS Percentage: %d%%\n", os);
-    printf("Number of Pages Reserved for OS: %d\n", numOSPages);
-    printf("Effective Virtual Pages per Process: %d\n", pages);
-    printf("Page Table Entry Size: %d bits\n", pteSizeBits);
-    printf("Number of Trace Files (Processes): %d\n", files);
+    printf("Number of Pages for System: %d\n", numOSPages);
+    printf("Size of Page Table Entry: %d bits\n", pteSizeBits);
     printf("Total RAM Required for Page Table(s): %d bytes\n", pageTable);
 }
 
