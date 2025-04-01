@@ -1,6 +1,6 @@
 # Virtual Memory Cache Simulation
 
-This is a C implementation of a Virtual Memory and Level 1 cache simulation for a 32-bit CPU. See the [./docs/Project-Assignment.pdf] file for the project instructions.
+This is a C implementation of a Virtual Memory and Level 1 cache simulation for a 32-bit CPU. See the [Project-Assignment.pdf](./docs/Project-Assignment.pdf) file for the project instructions.
 
 # Milestones
 
