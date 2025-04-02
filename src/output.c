@@ -138,3 +138,8 @@ PhysicalMemoryCalculatedValues_to_string(PhysicalMemoryCalculatedValues *vals) {
                                      str_fmt("%d", vals->pageTableRamUsage)));
     return str;
 }
+
+int main(void) {
+    printf("%s\n", str_fmt("Hello World!"));
+    return EXIT_SUCCESS;
+}
