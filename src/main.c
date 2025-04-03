@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     char *cache_values_str = CacheValues_to_string(&cache_vals);
     char *physical_mem_str = PhysicalMemory_to_string(&physical_memory);
 
-    printf("Cache Simulator - CS 3853 - Team #XX\n\n%s\n\n%s\n\n%s\n",
+    printf("Cache Simulator - CS 3853 - Team #6\n\n%s\n\n%s\n\n%s\n",
            cache_param_str, cache_values_str, physical_mem_str);
     return EXIT_SUCCESS;
 }
