@@ -75,8 +75,8 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
         str_fmt("%s%s\n", str,
                 _build_column_aligned_string(
                     "Implementation Memory Size:",
-                    str_fmt("%d.00 KB  (%u bytes)",
-                            (cache_vals->memorySize / BYTES_KB), cache_vals->memorySize)));
+                    str_fmt("%.2f KB  (%u bytes)",
+                            (((float)cache_vals->memorySize / BYTES_KB)), cache_vals->memorySize)));
     str = str_fmt("%s%s", str,
                   _build_column_aligned_string(
                       "Cost", str_fmt("$%.2f @ $%.2f per KB", cache_vals->cost,
