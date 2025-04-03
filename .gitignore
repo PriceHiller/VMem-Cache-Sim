@@ -4,3 +4,4 @@
 *.pch
 # Ignore LLVM/clang generated compilation files
 compile_commands.json
+vmem-cache-sim
