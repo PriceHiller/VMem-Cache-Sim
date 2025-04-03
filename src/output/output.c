@@ -56,27 +56,28 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
     char *str =
         str_fmt("%s\n\n", build_section_title("Cache Calculated Values"));
     str = str_fmt("%s%s\n", str,
-                  _build_column_aligned_string("Total # Blocks:",
-                                               str_fmt("%d", cache_vals->numBlocks)));
+                  _build_column_aligned_string(
+                      "Total # Blocks:", str_fmt("%d", cache_vals->numBlocks)));
     str = str_fmt("%s%s\n", str,
                   _build_column_aligned_string(
                       "Tag Size:", str_fmt("%d bits", cache_vals->tagSize)));
+    str =
+        str_fmt("%s%s\n", str,
+                _build_column_aligned_string(
+                    "Index Size:", str_fmt("%d bits", cache_vals->indexSize)));
     str = str_fmt("%s%s\n", str,
                   _build_column_aligned_string(
-                      "Index Size:", str_fmt("%d bits", cache_vals->indexSize)));
+                      "Total # Rows:", str_fmt("%d", cache_vals->sets)));
     str = str_fmt("%s%s\n", str,
-                  _build_column_aligned_string("Total # Rows:",
-                                               str_fmt("%d", cache_vals->sets)));
-    str =
-        str_fmt("%s%s\n", str,
-                _build_column_aligned_string(
-                    "Overhead Size:", str_fmt("%-5d %6s", cache_vals->overheadSize, "bytes")));
-    str =
-        str_fmt("%s%s\n", str,
-                _build_column_aligned_string(
-                    "Implementation Memory Size:",
-                    str_fmt("%.2f KB  (%u bytes)",
-                            (((float)cache_vals->memorySize / BYTES_KB)), cache_vals->memorySize)));
+                  _build_column_aligned_string(
+                      "Overhead Size:",
+                      str_fmt("%-5d %6s", cache_vals->overheadSize, "bytes")));
+    str = str_fmt("%s%s\n", str,
+                  _build_column_aligned_string(
+                      "Implementation Memory Size:",
+                      str_fmt("%.2f KB  (%u bytes)",
+                              (((float)cache_vals->memorySize / BYTES_KB)),
+                              cache_vals->memorySize)));
     str = str_fmt("%s%s", str,
                   _build_column_aligned_string(
                       "Cost", str_fmt("$%.2f @ $%.2f per KB", cache_vals->cost,

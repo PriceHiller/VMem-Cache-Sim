@@ -21,11 +21,9 @@ char *ReplacementPolicy_to_string(ReplacementPolicy rp) {
  */
 ReplacementPolicy ReplacementPolicy_from_string(char *replacement_policy) {
     char *rp_lower = str_lower(replacement_policy);
-    if (!strcmp(rp_lower, "round robin") ||
-        !strcmp(rp_lower, "rr")) {
+    if (!strcmp(rp_lower, "round robin") || !strcmp(rp_lower, "rr")) {
         return RP_ROUND_ROBIN;
-    } else if (!strcmp(rp_lower, "random") ||
-               !strcmp(rp_lower, "rnd")) {
+    } else if (!strcmp(rp_lower, "random") || !strcmp(rp_lower, "rnd")) {
         return RP_RANDOM;
     }
     return RP_UNKNOWN;

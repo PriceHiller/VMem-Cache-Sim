@@ -2,7 +2,6 @@
 // https://stackoverflow.com/questions/40159892/using-asprintf-on-windows/49873938#49873938
 // with modifications by me
 
-
 #include <stdarg.h> /* needed for va_*         */
 #include <stdio.h>  /* needed for vsnprintf    */
 #include <stdlib.h> /* needed for malloc, free */
@@ -12,7 +11,6 @@
 #else
 #include <linux/limits.h>
 #endif
-
 
 #ifdef _MSC_VER
 /*
@@ -38,7 +36,7 @@ int vasprintf(char **strp, const char *format, va_list ap) {
 }
 #endif
 
-char* str_fmt(const char *format, ...) {
+char *str_fmt(const char *format, ...) {
     char *str = NULL;
     va_list ap;
     va_start(ap, format);

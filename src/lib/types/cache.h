@@ -14,30 +14,29 @@ typedef struct {
 } TraceFiles;
 
 typedef struct {
-  Kilobyte cacheSize;
-  Byte blockSize;
-  unsigned int associativity;
-  ReplacementPolicy replacementPolicy;
-  Megabyte physicalMemory;
-  float percentMemoryUsed;
-  unsigned int instructionsPerTimeSlice;
-  TraceFiles traceFiles;
+    Kilobyte cacheSize;
+    Byte blockSize;
+    unsigned int associativity;
+    ReplacementPolicy replacementPolicy;
+    Megabyte physicalMemory;
+    float percentMemoryUsed;
+    unsigned int instructionsPerTimeSlice;
+    TraceFiles traceFiles;
 } CacheParameters;
-
 
 #define COST_PER_KB 0.12
 
 typedef struct {
-  int cacheBits;
-  int sets;
-  int numBlocks;
-  int indexSize;
-  int offsetSize;
-  int tagSize;
-  int overheadSize;
-  Byte memorySize;
-  double cost;
-  double costPerKb;
+    int cacheBits;
+    int sets;
+    int numBlocks;
+    int indexSize;
+    int offsetSize;
+    int tagSize;
+    int overheadSize;
+    Byte memorySize;
+    double cost;
+    double costPerKb;
 } CacheValues;
 
 #endif

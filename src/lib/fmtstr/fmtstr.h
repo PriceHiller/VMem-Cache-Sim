@@ -10,6 +10,6 @@
 int vasprintf(char **strp, const char *format, va_list ap);
 #endif
 
-char* str_fmt(const char *format, ...);
+char *str_fmt(const char *format, ...);
 
 #endif
