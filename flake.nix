@@ -2,26 +2,24 @@
   description = "Virtual Memory Cache Simulator";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
   outputs =
-    inputs@{ self, ... }:
+    inputs@{ self, systems, ... }:
     let
-      allSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-
-      forAllSystems =
-        f: inputs.nixpkgs.lib.genAttrs allSystems (system: f (import inputs.nixpkgs { inherit system; }));
+      eachSystem =
+        f:
+        inputs.nixpkgs.lib.genAttrs (import systems) (
+          system: f (import inputs.nixpkgs { inherit system; })
+        );
+      treefmtEval = eachSystem (pkgs: inputs.treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
+      lib = inputs.nixpkgs.lib;
     in
     {
-      packages = forAllSystems (
+      packages = eachSystem (
         pkgs:
         let
           prog-name = "vmem-cache-sim";
-          platforms = allSystems;
           builder =
             {
               stdenv ? pkgs.stdenv,
@@ -47,7 +45,6 @@
                   '';
                 meta = {
                   mainProgram = "${prog-name}";
-                  platforms = platforms;
                 };
 
               }
@@ -64,29 +61,44 @@
           };
         }
       );
-      checks = forAllSystems (pkgs: {
-        clang-tidy = pkgs.runCommand "clang-tidy" { } ''
-          ${pkgs.clang-tools}/bin/clang-tidy ${./src}/**/*.c} ${./src}/**/*.h
-          touch $out
-        '';
-        toplevel-makefile-not-generated-by-cmake = pkgs.runCommand "makefile-checker" { } ''
-          read -r first_line < ${./Makefile}
-          first_line_lower="''${first_line,,}"
-          if [[ "$first_line_lower" = *"cmake generated file"* ]]; then
-            echo "The toplevel Makefile has been overwritten by CMake! Revert the change!"
-            echo "Got first line as $first_line_lower"
-            exit 1
-          fi
-          touch $out
-        '';
-      });
-      devShells = forAllSystems (pkgs: {
+      formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
+      checks = eachSystem (
+        pkgs:
+        let
+          clang-tools = pkgs.llvmPackages_latest.clang-tools;
+          src-files = builtins.filter (f: (lib.strings.hasSuffix ".c" f || lib.strings.hasSuffix ".c" f)) (
+            lib.filesystem.listFilesRecursive "${self}/src"
+          );
+          src-files-string = lib.strings.concatStringsSep " " (
+            builtins.map (file: ''"${builtins.toString file}"'') src-files
+          );
+        in
+        {
+          formatting = treefmtEval.${pkgs.system}.config.build.check self;
+          clang-tidy = pkgs.runCommand "clang-tidy" { } ''
+            echo "SELF: ${self}"
+            ${clang-tools}/bin/clang-tidy ${src-files-string}
+            touch $out
+          '';
+          toplevel-makefile-not-generated-by-cmake = pkgs.runCommand "makefile-checker" { } ''
+            read -r first_line < ${./Makefile}
+            first_line_lower="''${first_line,,}"
+            if [[ "$first_line_lower" = *"cmake generated file"* ]]; then
+              echo "The toplevel Makefile has been overwritten by CMake! Revert the change!"
+              echo "Got first line as $first_line_lower"
+              exit 1
+            fi
+            touch $out
+          '';
+        }
+      );
+      devShells = eachSystem (pkgs: {
         default = pkgs.mkShell {
           packages = with pkgs; [
             gnumake
             gcc
-            clang-tools
-            clang
+            llvmPackages_latest.clang-tools
+            llvmPackages_latest.clang
           ];
         };
       });
