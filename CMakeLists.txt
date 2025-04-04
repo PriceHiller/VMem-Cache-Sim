@@ -8,7 +8,9 @@ file(GLOB_RECURSE prog_sources CONFIGURE_DEPENDS "src/*.c" "src/*.h")
 
 add_executable(vmem-cache-sim ${prog_sources})
 find_library(MATH_LIBRARY m)
-target_link_libraries(${PNAME} PUBLIC ${MATH_LIBRARY})
+if(MATH_LIBRARY)
+    target_link_libraries(${PNAME} PUBLIC ${MATH_LIBRARY})
+endif()
 set_target_properties(${PNAME}
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
