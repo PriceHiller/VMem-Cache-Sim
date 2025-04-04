@@ -7,4 +7,5 @@
     package = pkgs.llvmPackages_latest.clang-tools;
   };
   programs.nixfmt.enable = true;
+  programs.yamlfmt.enable = true;
 }
