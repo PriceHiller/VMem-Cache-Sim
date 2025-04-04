@@ -85,8 +85,7 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
     return str;
 }
 
-char *PhysicalMemory_to_string(CacheParameters cache_params,
-                               PhysicalMemory *phys_mem) {
+char *PhysicalMemory_to_string(PhysicalMemory *phys_mem) {
     char *str = str_fmt(
         "%s\n\n", build_section_title("Physical Memory Calculated Values"));
     str = str_fmt(
