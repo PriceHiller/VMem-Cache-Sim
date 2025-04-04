@@ -2,6 +2,23 @@
 
 This is a C implementation of a Virtual Memory and Level 1 cache simulation for a 32-bit CPU. See the [Project-Assignment.pdf](./docs/Project-Assignment.pdf) file for the project instructions.
 
+# Building
+
+## With `Make`
+
+Run `make` in the top level directory, the generated binary should be in the top level as well.
+
+
+## With `Cmake`
+
+Create a `build` directory and change directory into it. From that directory type `cmake ..` and (if on Unix platforms) run `make` to build.
+
+The built binary should be in the generated `bin/` directory.
+
+## With Nix
+
+Run `nix build`. If you'd prefer to use `clang` or `cmake` we also expose those as `".#clang"` and `".#cmake"`.
+
 # Milestones
 
 ## Milestone 1: Input Parameters and Calculated Values

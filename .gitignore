@@ -6,3 +6,7 @@
 compile_commands.json
 vmem-cache-sim
 result
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+*/**/Makefile

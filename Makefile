@@ -1,3 +1,4 @@
+# Do not overwrite this file/regenerate it via Cmake!
 output-bin=vmem-cache-sim
 
 # Absolute hero: https://blog.jgc.org/2011/07/gnu-make-recursive-wildcard-function.html

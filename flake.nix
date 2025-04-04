@@ -20,40 +20,63 @@
       packages = forAllSystems (
         pkgs:
         let
+          prog-name = "vmem-cache-sim";
+          platforms = allSystems;
           builder =
             {
               stdenv ? pkgs.stdenv,
-              prog-name ? "vmem-cache-sim",
-              platforms ? allSystems,
+              inner ? { },
             }:
-            stdenv.mkDerivation {
-              name = "${prog-name}";
-              src = self;
-              installPhase =
-                let
-                  outpath = # bash
-                    "$out/bin/${prog-name}";
-                in
-                ''
-                  mkdir -p "$out/bin"
-                  mv vmem-cache-sim "${outpath}"
-                  test -x "${outpath}"
+            stdenv.mkDerivation (
+              {
+                name = "${prog-name}";
+                src = self;
+                checkPhase = ''
+                  ls -alh
                 '';
-              meta = {
-                mainProgram = "${prog-name}";
-                platforms = platforms;
-              };
+                installPhase =
+                  let
+                    outpath = # bash
+                      "$out/bin/${prog-name}";
+                  in
+                  ''
+                    echo "$buildPhase"
+                    mkdir -p "$out/bin"
+                    mv vmem-cache-sim "${outpath}"
+                    test -x "${outpath}"
+                  '';
+                meta = {
+                  mainProgram = "${prog-name}";
+                  platforms = platforms;
+                };
 
-            };
+              }
+              // inner
+            );
         in
         {
           default = builder { };
           clang = builder { stdenv = pkgs.clangStdenv; };
+          cmake = builder {
+            inner = {
+              buildInputs = [ pkgs.cmake ];
+            };
+          };
         }
       );
       checks = forAllSystems (pkgs: {
         clang-tidy = pkgs.runCommand "clang-tidy" { } ''
           ${pkgs.clang-tools}/bin/clang-tidy ${./src}/**/*.c} ${./src}/**/*.h
+          touch $out
+        '';
+        toplevel-makefile-not-generated-by-cmake = pkgs.runCommand "makefile-checker" { } ''
+          read -r first_line < ${./Makefile}
+          first_line_lower="''${first_line,,}"
+          if [[ "$first_line_lower" = *"cmake generated file"* ]]; then
+            echo "The toplevel Makefile has been overwritten by CMake! Revert the change!"
+            echo "Got first line as $first_line_lower"
+            exit 1
+          fi
           touch $out
         '';
       });

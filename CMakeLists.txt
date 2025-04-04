@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.31)
+set(PNAME "vmem-cache-sim")
+project(${PNAME} LANGUAGES C)
+
+
+file(GLOB_RECURSE prog_sources CONFIGURE_DEPENDS "src/*.c" "src/*.h")
+
+
+add_executable(vmem-cache-sim ${prog_sources})
+find_library(MATH_LIBRARY m)
+target_link_libraries(${PNAME} PUBLIC ${MATH_LIBRARY})
+set_target_properties(${PNAME}
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
