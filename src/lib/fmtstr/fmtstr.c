@@ -40,7 +40,7 @@ char *str_fmt(const char *format, ...) {
     char *str = NULL;
     va_list ap;
     va_start(ap, format);
-    int _ = vasprintf(&str, format, ap);
+    vasprintf(&str, format, ap);
     va_end(ap);
     return str;
 }

@@ -8,7 +8,6 @@ PhysicalMemory PhysicalMemory_calculate_stats(Byte physical_memory_bytes,
                                               int percent_memory_used,
                                               int files) {
     PhysicalMemory stats;
-
     // Convert physmem to bytes
     stats.physBytes = physical_memory_bytes;
 

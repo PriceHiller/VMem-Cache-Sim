@@ -9,7 +9,7 @@ char *ReplacementPolicy_to_string(ReplacementPolicy rp);
 ReplacementPolicy ReplacementPolicy_from_string(char *replacement_policy);
 
 typedef struct {
-    char files[3][100];
+    char *files[3];
     unsigned int count;
 } TraceFiles;
 

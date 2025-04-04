@@ -1,3 +1,4 @@
+#include "../lib/fmtstr/fmtstr.h"
 #include "../lib/types/cache.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -42,9 +43,7 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
                 exit(1);
             }
         } else if (strcmp(argv[i], "-r") == 0) {
-            char replacement_policy[4];
-            strncpy(replacement_policy, argv[++i], 3);
-            replacement_policy[3] = '\0';
+            char *replacement_policy = str_fmt("%s", argv[++i]);
             parameters.replacementPolicy =
                 ReplacementPolicy_from_string(replacement_policy);
             if (parameters.replacementPolicy == RP_UNKNOWN) {
@@ -76,11 +75,8 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
             parameters.instructionsPerTimeSlice = timeslice;
         } else if (strcmp(argv[i], "-f") == 0) {
             if (parameters.traceFiles.count < 3) {
-                strncpy(
-                    parameters.traceFiles.files[parameters.traceFiles.count],
-                    argv[++i], 99);
-                parameters.traceFiles.files[parameters.traceFiles.count][99] =
-                    '\0';
+                parameters.traceFiles.files[parameters.traceFiles.count] =
+                    str_fmt("%s", argv[++i]);
                 parameters.traceFiles.count++;
             } else {
                 printf("Error: Maximum of 3 trace files are allowed\n");
