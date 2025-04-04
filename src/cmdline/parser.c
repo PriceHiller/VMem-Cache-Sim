@@ -9,7 +9,6 @@
 // parameters struct
 CacheParameters read_cmdline_args(int argc, char *argv[]) {
     CacheParameters parameters;
-    TraceFiles traceFiles;
     if (argc < 9) {
         printf("Error: Not enough args\n");
         exit(1);
@@ -69,7 +68,7 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
             }
         } else if (strcmp(argv[i], "-n") == 0) {
             unsigned int timeslice = atoi(argv[++i]);
-            if (timeslice == -1) {
+            if ((int)timeslice == -1) {
                 timeslice = 0xFFFFFFFF;
             }
             parameters.instructionsPerTimeSlice = timeslice;
