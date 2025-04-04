@@ -1,7 +1,7 @@
 #include "../lib/types/physicalmemory.h"
 #include <math.h>
 
-#define PAGE_SIZE_BYTES (4 * BYTES_KB)
+#define PAGE_SIZE_BYTES (4ULL * BYTES_KB)
 #define VIRTUAL_ADDRESS_SPACE_BYTES (2ULL * BYTES_GB)
 
 PhysicalMemory PhysicalMemory_calculate_stats(Byte physical_memory_bytes,
