@@ -18,7 +18,7 @@ char *build_trace_files_string(TraceFiles *trace_files) {
         str = str_fmt("%s\t%s\n", str, trace_files->files[i]);
     }
     return str;
-};
+}
 
 char *CacheParameters_to_string(CacheParameters *params) {
     char *str = build_trace_files_string(&params->traceFiles);
