@@ -1,5 +1,5 @@
 // Credit to
-// https://stackoverflow.com/questions/40159892/using-asprintf-on-windows/49873938#49873938
+// https://stackoverflow.com/a/49873938
 // with modifications by me
 
 #include <stdarg.h> /* needed for va_*         */
@@ -19,11 +19,12 @@
  * GNU-C-compatible compilers implement these with the same names, and we
  * don't have to do anything
  */
-int vasprintf(char **strp, const char *format, va_list ap) {
+int vasprintf(char **strp, const char *format, va_list ap)
+{
     int len = _vscprintf(format, ap);
     if (len == -1)
         return -1;
-    char *str = (char *)malloc((size_t)len + 1);
+    char *str = (char*)malloc((size_t) len + 1);
     if (!str)
         return -1;
     int retval = vsnprintf(str, len + 1, format, ap);

@@ -7,7 +7,7 @@
 
 // MSVC does not implement vasprintf
 #ifdef _MSC_VER
-int vasprintf(char **strp, const char *format, va_list ap);
+int vasprintf(char **strp, const char *format, ...);
 #endif
 
 char *str_fmt(const char *format, ...);
