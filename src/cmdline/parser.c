@@ -1,4 +1,5 @@
 #include "../lib/types/cache.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,8 +18,8 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-s") == 0) {
-            parameters.cacheSize = atoi(argv[++i]) * BYTES_KB;
-            if (parameters.cacheSize < 8 * BYTES_KB ||
+            parameters.cacheSize = (atol(argv[++i]) * BYTES_KB);
+            if (parameters.cacheSize < (unsigned long)(8 * BYTES_KB) ||
                 parameters.cacheSize > 16 * BYTES_MB) {
                 printf("Error: Cache size must be between 8 KB and 8 MB\n");
                 exit(1);
@@ -41,7 +42,7 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
                 exit(1);
             }
         } else if (strcmp(argv[i], "-r") == 0) {
-            char *replacement_policy;
+            char replacement_policy[4];
             strncpy(replacement_policy, argv[++i], 3);
             replacement_policy[3] = '\0';
             parameters.replacementPolicy =
@@ -68,7 +69,7 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
                 exit(1);
             }
         } else if (strcmp(argv[i], "-n") == 0) {
-            int timeslice = atoi(argv[++i]);
+            unsigned int timeslice = atoi(argv[++i]);
             if (timeslice == -1) {
                 timeslice = 0xFFFFFFFF;
             }
