@@ -22,19 +22,13 @@
         let
           builder =
             {
-              CC,
-              buildInputs,
+              stdenv ? pkgs.stdenv,
               prog-name ? "vmem-cache-sim",
               platforms ? allSystems,
             }:
-            pkgs.stdenv.mkDerivation {
+            stdenv.mkDerivation {
               name = "${prog-name}";
               src = self;
-              buildInputs = buildInputs;
-              buildPhase = ''
-                echo "Building with ${CC}"
-                make CC="${CC}" output-bin="${prog-name}" build-release
-              '';
               installPhase =
                 let
                   outpath = # bash
@@ -52,16 +46,9 @@
 
             };
         in
-        rec {
-          gcc = builder {
-            CC = "gcc";
-            buildInputs = [ pkgs.gcc ];
-          };
-          clang = builder {
-            CC = "clang";
-            buildInputs = [ pkgs.clang ];
-          };
-          default = clang;
+        {
+          default = builder { };
+          clang = builder { stdenv = pkgs.clangStdenv; };
         }
       );
       checks = forAllSystems (pkgs: {
