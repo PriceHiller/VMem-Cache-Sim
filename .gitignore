@@ -5,6 +5,7 @@
 # Ignore LLVM/clang generated compilation files
 compile_commands.json
 vmem-cache-sim
+vmem-cache-sim.exe
 result
 CMakeCache.txt
 cmake_install.cmake
