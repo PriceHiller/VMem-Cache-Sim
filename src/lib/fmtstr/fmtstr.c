@@ -19,12 +19,11 @@
  * GNU-C-compatible compilers implement these with the same names, and we
  * don't have to do anything
  */
-int vasprintf(char **strp, const char *format, va_list ap)
-{
+int vasprintf(char **strp, const char *format, va_list ap) {
     int len = _vscprintf(format, ap);
     if (len == -1)
         return -1;
-    char *str = (char*)malloc((size_t) len + 1);
+    char *str = (char *)malloc((size_t)len + 1);
     if (!str)
         return -1;
     int retval = vsnprintf(str, len + 1, format, ap);
