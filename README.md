@@ -11,7 +11,7 @@ Run `make` in the top level directory, the generated binary should be in the top
 
 ## With `Cmake`
 
-Create a `build` directory and change directory into it. From that directory type `cmake ..` and (if on Unix platforms) run `make` to build.
+Create a `build` directory and change directory into it. From that directory type `cmake ..` and then run `cmake --build .` to build.
 
 The built binary should be in the generated `bin/` directory.
 
