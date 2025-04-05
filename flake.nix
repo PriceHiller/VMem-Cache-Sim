@@ -102,6 +102,7 @@
         default = pkgs.mkShell {
           packages = with pkgs; [
             gnumake
+            cmake
             gcc
             llvmPackages_latest.clang-tools
             llvmPackages_latest.clang
