@@ -16,51 +16,57 @@
       lib = inputs.nixpkgs.lib;
     in
     {
-      packages = eachSystem (
-        pkgs:
+      packages =
         let
           prog-name = "vmem-cache-sim";
-          builder =
-            {
-              stdenv ? pkgs.stdenv,
-              inner ? { },
-            }:
-            stdenv.mkDerivation (
+          outpath = # bash
+            "$out/bin/${prog-name}";
+        in
+        eachSystem (
+          pkgs:
+          let
+            builder =
               {
-                name = "${prog-name}";
-                src = self;
-                checkPhase = ''
-                  ls -alh
-                '';
-                installPhase =
-                  let
-                    outpath = # bash
-                      "$out/bin/${prog-name}";
-                  in
-                  ''
-                    echo "$buildPhase"
+                stdenv ? pkgs.stdenv,
+                inner ? { },
+              }:
+              stdenv.mkDerivation (
+                {
+                  name = "${prog-name}";
+                  src = self;
+                  checkPhase = ''
+                    ls -alh
+                  '';
+                  installPhase = ''
                     mkdir -p "$out/bin"
                     mv vmem-cache-sim "${outpath}"
                     test -x "${outpath}"
                   '';
-                meta = {
-                  mainProgram = "${prog-name}";
-                };
+                  meta = {
+                    mainProgram = "${prog-name}";
+                  };
 
-              }
-              // inner
-            );
-        in
-        {
-          default = builder { };
-          clang = builder { stdenv = pkgs.clangStdenv; };
-          cmake = builder {
-            inner = {
-              buildInputs = [ pkgs.cmake ];
+                }
+                // inner
+              );
+          in
+          {
+            default = builder { };
+            clang = builder { stdenv = pkgs.clangStdenv; };
+            cmake = builder {
+              inner = {
+                buildInputs = [ pkgs.cmake ];
+                installPhase = # bash
+                  ''
+                    mkdir -p "$out/bin"
+                    mv "bin/${prog-name}" "${outpath}"
+                    test -x "${outpath}"
+                  '';
+
+              };
             };
-          };
-        }
-      );
+          }
+        );
       formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
       checks = eachSystem (
         pkgs:
