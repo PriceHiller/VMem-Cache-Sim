@@ -6,10 +6,10 @@ rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst 
 objects=$(call rwildcard,src,*.c)
 
 vmem-cache-sim:
-	$(CC) -lm $(CFLAGS) -o $(output-bin) $(LDFLAGS) $(objects)
+	$(CC) -flto -static $(CFLAGS) -o $(output-bin) $(LDFLAGS) $(objects) -lm
 
 build-dev:
-	$(CC) --debug -Wall -Wextra -Wpedantic -lm $(CFLAGS) -o $(output-bin) $(LDFLAGS) $(objects)
+	$(CC) --debug -Wall -Wextra -Wpedantic  $(CFLAGS) -o $(output-bin) $(LDFLAGS) $(objects) -lm
 
 build-release: vmem-cache-sim
 

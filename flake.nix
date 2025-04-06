@@ -37,6 +37,9 @@
                   checkPhase = ''
                     ls -alh
                   '';
+                  nativeBuildInputs = with pkgs; [
+                    glibc.static
+                  ];
                   installPhase = ''
                     mkdir -p "$out/bin"
                     mv vmem-cache-sim "${outpath}"
