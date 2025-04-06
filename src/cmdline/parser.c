@@ -15,8 +15,8 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
     }
 
     parameters.traceFiles.count = 0;
-
-    for (int i = 1; i < argc; i++) {
+    int i;
+    for ( i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-s") == 0) {
             parameters.cacheSize = (atol(argv[++i]) * BYTES_KB);
             if (parameters.cacheSize < (unsigned long)(8 * BYTES_KB) ||
