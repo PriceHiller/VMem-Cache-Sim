@@ -15,7 +15,7 @@ char *_build_column_aligned_string(char *col1, char *col2) {
 char *build_trace_files_string(TraceFiles *trace_files) {
     char *str = "Trace File(s):\n";
     size_t i;
-    for ( i = 0; i < trace_files->count; i++) {
+    for (i = 0; i < trace_files->count; i++) {
         str = str_fmt("%s\t%s\n", str, trace_files->files[i]);
     }
     return str;
