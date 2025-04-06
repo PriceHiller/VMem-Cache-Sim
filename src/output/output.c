@@ -103,7 +103,7 @@ char *PhysicalMemory_to_string(PhysicalMemory *phys_mem) {
                       str_fmt("%d bits", phys_mem->pageTableEntryBits)));
     str = str_fmt(
         "%s%s", str,
-        _build_column_aligned_string("Total RAM for Page Table(s):)",
-                                     str_fmt("%d", phys_mem->pageTableBytes)));
+        _build_column_aligned_string("Total RAM for Page Table(s):",
+                                     str_fmt("%d bytes", phys_mem->pageTableBytes)));
     return str;
 }
