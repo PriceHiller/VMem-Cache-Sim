@@ -6,7 +6,8 @@
 
 char *str_lower(char *in_str) {
     char *str = strdup(in_str);
-    for (int i = 0; str[i] != '\0'; i++) {
+    int i;
+    for (i = 0; str[i] != '\0'; i++) {
         str[i] = tolower(str[i]);
     }
     return str;
