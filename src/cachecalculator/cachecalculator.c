@@ -1,5 +1,6 @@
 #include "cachecalculator.h"
 #include <math.h>
+#include <stdio.h>
 
 int calculateBlocks(Byte cacheSize, int blockSize) {
     return (cacheSize) / blockSize;
@@ -24,7 +25,7 @@ int calculateOverheadSize(int numBlocks, int tagSize) {
 
 CacheValues Cache_calculate_values(Byte cache_size_bytes, Byte block_size_bytes,
                                    int associativity,
-                                   int physical_memory_bytes) {
+                                   Byte physical_memory_bytes) {
     CacheValues cv;
 
     int cacheBits = log2f(cache_size_bytes);

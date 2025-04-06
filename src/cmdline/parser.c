@@ -67,9 +67,12 @@ CacheParameters read_cmdline_args(int argc, char *argv[]) {
                 exit(1);
             }
         } else if (strcmp(argv[i], "-n") == 0) {
-            unsigned int timeslice = atoi(argv[++i]);
-            if ((int)timeslice == -1) {
+            int input_timeslice = atoi(argv[++i]);
+            unsigned long timeslice;
+            if ((int)input_timeslice == -1) {
                 timeslice = 0xFFFFFFFF;
+            } else {
+                timeslice = input_timeslice;
             }
             parameters.instructionsPerTimeSlice = timeslice;
         } else if (strcmp(argv[i], "-f") == 0) {

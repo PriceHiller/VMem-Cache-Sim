@@ -41,7 +41,7 @@ char *CacheParameters_to_string(CacheParameters *params) {
     str = str_fmt(
         "%s%s\n", str,
         build_column_aligned_string("Physical Memory:",
-                                     str_fmt("%d MB", params->physicalMemory)));
+                                    str_fmt("%d MB", params->physicalMemory)));
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(
                       "Percent Memory Used by System:",
@@ -49,7 +49,7 @@ char *CacheParameters_to_string(CacheParameters *params) {
     str = str_fmt("%s%s", str,
                   build_column_aligned_string(
                       "Instructions / Time Slice:",
-                      str_fmt("%d", params->instructionsPerTimeSlice)));
+                      str_fmt("%u", params->instructionsPerTimeSlice)));
     return str;
 }
 
@@ -67,8 +67,8 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
                 build_column_aligned_string(
                     "Index Size:", str_fmt("%d bits", cache_vals->indexSize)));
     str = str_fmt("%s%s\n", str,
-                  build_column_aligned_string(
-                      "Total # Rows:", str_fmt("%d", cache_vals->sets)));
+                  build_column_aligned_string("Total # Rows:",
+                                              str_fmt("%d", cache_vals->sets)));
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(
                       "Overhead Size:",
@@ -89,21 +89,21 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
 char *PhysicalMemory_to_string(PhysicalMemory *phys_mem) {
     char *str = str_fmt(
         "%s\n\n", build_section_title("Physical Memory Calculated Values"));
-    str = str_fmt(
-        "%s%s\n", str,
-        build_column_aligned_string("Number of Physical Pages:",
-                                     str_fmt("%d", phys_mem->numPages)));
+    str =
+        str_fmt("%s%s\n", str,
+                build_column_aligned_string("Number of Physical Pages:",
+                                            str_fmt("%d", phys_mem->numPages)));
     str = str_fmt(
         "%s%s\n", str,
         build_column_aligned_string("Number of Pages for System:",
-                                     str_fmt("%d", phys_mem->numOSPages)));
+                                    str_fmt("%d", phys_mem->numOSPages)));
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(
                       "Size of Page Table Entry:",
                       str_fmt("%d bits", phys_mem->pageTableEntryBits)));
-    str = str_fmt(
-        "%s%s", str,
-        build_column_aligned_string("Total RAM for Page Table(s):",
-                                     str_fmt("%d bytes", phys_mem->pageTableBytes)));
+    str = str_fmt("%s%s", str,
+                  build_column_aligned_string(
+                      "Total RAM for Page Table(s):",
+                      str_fmt("%d bytes", phys_mem->pageTableBytes)));
     return str;
 }
