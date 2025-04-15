@@ -98,7 +98,7 @@ void calculateWastedPageTable(SimulationStats* sim){
     for (i = 0; i < sim->processCt; i++){
         if (sim->pageTableProcesses[i].processName != NULL){ //check for valid process
             sim->pageTableProcesses[i].wastedPageTable =
-                    (sim->pageTableProcesses[i].totalPTE - sim->pageTableProcesses[i].usedPTE) * PTE_SIZE;
+                    (sim->pageTableProcesses[i].totalPTE - sim->pageTableProcesses[i].usedPTE) * PAGE_SIZE_BYTES;
         }
     }
 }
