@@ -1,6 +1,7 @@
 #include "../lib/fmtstr/fmtstr.h"
 #include "../lib/types/cache.h"
 #include "../lib/types/physicalmemory.h"
+#include "../virtmemresults/virtMemResults.h" 
 #include <stdio.h>
 #include <string.h>
 
