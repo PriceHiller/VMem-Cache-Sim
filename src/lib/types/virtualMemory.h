@@ -1,11 +1,11 @@
 #ifndef LIBTYPES_VIRTMEM_H
 #define LIBTYPES_VIRTMEM_H
 
-//structs, go in lib/types folder?
+// structs, go in lib/types folder?
 #include "types.h"
 
 typedef struct {
-    char* processName;
+    char *processName;
     unsigned int virtualPagesMapped;
     unsigned int pageTableHits;
     unsigned int pageFaults;
@@ -23,7 +23,7 @@ typedef struct {
     unsigned int pagesFromFree;
     unsigned int totalPageFaults;
 
-    PageTableProcess* pageTableProcesses;
+    PageTableProcess *pageTableProcesses;
     int processCt;
 } SimulationStats;
 

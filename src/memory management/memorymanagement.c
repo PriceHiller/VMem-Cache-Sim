@@ -1,10 +1,10 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
-#define PAGE_SIZE 4096              
-#define VIR_SPACE 524288   
+#define PAGE_SIZE 4096
+#define VIR_SPACE 524288
 
 typedef struct {
     int valid;
@@ -60,17 +60,17 @@ void initPhysMem(int physMemMB, int osPercent, vmstats *stats) {
     }
 }
 
-void freePhysMem() {
-    free(physmem.freeList);
-}
+void freePhysMem() { free(physmem.freeList); }
 
 void initProc(Proc *proc) {
     proc->pageTable = (PTE *)calloc(VIR_SPACE, sizeof(PTE));
 }
 
 int lookupPage(Proc *proc, int vPage) {
-    if (vPage < 0 || vPage >= VIR_SPACE) return -1;
-    if (proc->pageTable[vPage].valid) return proc->pageTable[vPage].physPage;
+    if (vPage < 0 || vPage >= VIR_SPACE)
+        return -1;
+    if (proc->pageTable[vPage].valid)
+        return proc->pageTable[vPage].physPage;
     return -1;
 }
 
@@ -111,7 +111,8 @@ int accessMemory(Proc *proc, int address, vmstats *stats, int ProcIndex) {
     int physPage = lookupPage(proc, vPage);
     if (physPage == -1) {
         physPage = mapPage(proc, vPage, stats);
-        if (physPage == -1) return -1;
+        if (physPage == -1)
+            return -1;
     } else {
         stats->hits++;
     }
@@ -121,11 +122,8 @@ int accessMemory(Proc *proc, int address, vmstats *stats, int ProcIndex) {
 int countused(PTE *table) {
     int used = 0;
     for (int i = 0; i < VIR_SPACE; i++) {
-        if (table[i].valid) used++;
+        if (table[i].valid)
+            used++;
     }
     return used;
 }
-
-
-
-

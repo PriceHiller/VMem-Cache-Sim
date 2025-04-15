@@ -1,7 +1,7 @@
 #include "../lib/fmtstr/fmtstr.h"
 #include "../lib/types/cache.h"
 #include "../lib/types/physicalmemory.h"
-#include "../virtmemresults/virtMemResults.h" 
+#include "../virtmemresults/virtMemResults.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -109,30 +109,36 @@ char *PhysicalMemory_to_string(PhysicalMemory *phys_mem) {
     return str;
 }
 char *VirtualMemory_to_string(SimulationStats *sim) {
-    char *str =
-        str_fmt("%s\n\n", build_section_title("VIRTUAL MEMORY SIMULATION RESULTS"));
-    str = str_fmt("%s%s\n", str, 
-        build_column_aligned_string(
-            "Physical Pages Used By SYSTEM:", str_fmt("%u", sim->pagesUsedForOS)));
-    str = str_fmt("%s%s\n", str,
-        build_column_aligned_string(
-            "Pages Available to User:", str_fmt("%u", sim->pagesAvailable)));
+    char *str = str_fmt(
+        "%s\n\n", build_section_title("VIRTUAL MEMORY SIMULATION RESULTS"));
+    str = str_fmt(
+        "%s%s\n", str,
+        build_column_aligned_string("Physical Pages Used By SYSTEM:",
+                                    str_fmt("%u", sim->pagesUsedForOS)));
+    str = str_fmt(
+        "%s%s\n", str,
+        build_column_aligned_string("Pages Available to User:",
+                                    str_fmt("%u", sim->pagesAvailable)));
     str = str_fmt("%s\n", str);
 
-    str = str_fmt("%s%s\n", str, 
-        build_column_aligned_string(
-            "Virtual Pages Mapped:", str_fmt("%u", sim->totalVirtualPagesMapped)));
+    str = str_fmt("%s%s\n", str,
+                  build_column_aligned_string(
+                      "Virtual Pages Mapped:",
+                      str_fmt("%u", sim->totalVirtualPagesMapped)));
     str = str_fmt("%s\t------------------------------\n", str);
     str = str_fmt("%s\tPage Table Hits: %u\n", str, sim->pageTableHits);
     str = str_fmt("%s\tPages from Free: %u\n", str, sim->pagesFromFree);
     str = str_fmt("%s\tTotal Page Faults: %u\n\n", str, sim->totalPageFaults);
 
-    str = str_fmt("%sPage Table Usage Per Process:\n------------------------------\n", str);
+    str = str_fmt(
+        "%sPage Table Usage Per Process:\n------------------------------\n",
+        str);
     for (int i = 0; i < sim->processCt; i++) {
         PageTableProcess *proc = &sim->pageTableProcesses[i];
         str = str_fmt("%s[%d] %s:\n", str, i, proc->processName);
         str = str_fmt("%s\tUsed Page Table Entries: %u\n", str, proc->usedPTE);
-        str = str_fmt("%s\tPage Table Wasted: %u bytes\n\n", str, proc->wastedPageTable);
+        str = str_fmt("%s\tPage Table Wasted: %u bytes\n\n", str,
+                      proc->wastedPageTable);
     }
     return str;
 }
