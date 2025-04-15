@@ -1,3 +1,3 @@
 ---
-Checks: 'bugprone-*,portability-*,clang-analyzer-*,-clang-analyzer-cplusplus*,abseil-*'
+Checks: 'bugprone-*,-bugprone-easily-swappable-parameters,portability-*,clang-analyzer-*,-clang-analyzer-cplusplus*,abseil-*'
 WarningsAsErrors: 'clang-analyzer-*,abseil-*,-clang-analyzer-cplusplus*'
