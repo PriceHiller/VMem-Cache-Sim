@@ -1,7 +1,7 @@
 #ifndef VIRTMEMRESULTS_H
 #define VIRTMEMRESULTS_H
 
-#include "../lib/types/virtualmemory.h"
+#include "../lib/types/virtualMemory.h"
 
 //methods
 
