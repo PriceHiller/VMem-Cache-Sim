@@ -8,7 +8,6 @@ This is a C implementation of a Virtual Memory and Level 1 cache simulation for 
 
 Run `make` in the top level directory, the generated binary should be in the top level as well.
 
-
 ## With `Cmake`
 
 Create a `build` directory and change directory into it. From that directory type `cmake ..` and then run `cmake --build .` to build.
@@ -106,5 +105,65 @@ We chose to divide Milestone 1 into four parts.
 - Quick manual or automated tests (e.g., try `-s 512 -b 16 -a 4 …`) to confirm.
 
 ## Milestone 2: Virtual Memory Simulation Results
+
+### Part 1: Trace File Parsing and Virtual Address Extraction
+
+- **Responsibilities:**
+  - Read each trace file line by line using functions like `fgets` or equivalent.
+  - Extract the key data from the structured trace lines (e.g., instruction length and virtual addresses from the EIP line, and data addresses from the dstM/srcM lines).
+  - Filter out invalid accesses (addresses equal to zero or marked with `--------`).
+  - Convert extracted string representations of addresses into numerical values.
+- **Deliverables:**
+  - A module (or function library) that reliably parses trace files and returns a list of virtual addresses (and possibly instruction lengths).
+  - Unit tests to ensure the parser correctly interprets the sample trace file format.
+
+### Part 2: Virtual Memory Manager & Page Table Simulation
+
+- **Responsibilities:**
+  - Implement the virtual-to-physical address translation using a page table for each process (trace file).
+  - Initialize and manage a page table with 512K entries (as specified).
+  - Handle page faults:
+  - - Check if a free physical page is available.
+  - - If not, implement a replacement policy (or selection) to decide which process's page to free.
+  - Update page table entries when a new virtual-to-physical mapping is created.
+  - **Note:** Use the calculated physical memory values (from Milestone 1) to determine available pages.
+- **Deliverables:**
+  - A module that provides functions to:
+    - Look up a virtual address in the page table.
+    - Update the page table on a page fault.
+    - Simulate mapping of virtual pages to physical pages.
+  - Functions that return counters for page table hits, free page mappings, and page faults.
+
+### Part 3: Simulation Metrics & Statistics Calculation
+
+- **Responsibilities:**
+  - During the simulation run, collect all metrics such as:
+    - **Physical Pages Used by SYSTEM:** Derived from the OS percentage.
+    - **Pages Available to User:** (Total physical pages minus OS-reserved pages).
+    - **Virtual Pages Mapped:** Total number of virtual pages that were successfully mapped.
+    - **Page Table Hits:** Count of accesses where the virtual page was already mapped.
+    - **Pages from Free:** Count of mappings that came from free physical pages.
+    - **Total Page Faults:** Count of times no physical page was available and a page fault occurred.
+  - For each process (trace file), track:
+    - The number of used page table entries.
+    - The “wasted” page table memory (unused entries, if applicable).
+- **Deliverables:**
+  - A statistics module that aggregates simulation data.
+  - Data structures (possibly structs) to hold per-process and overall simulation metrics.
+  - Functions that compute the final numbers needed for the formatted output.
+
+### Part 4: Output Formatting, Integration & Testing
+
+- **Responsibilities:**
+  - Integrate the results from Milestone 1 (input parameters and calculated values) with the new virtual memory simulation results.
+  - Format and print the simulation results exactly as specified. This includes headers like:
+    - `***** VIRTUAL MEMORY SIMULATION RESULTS *****`
+    - The calculated values for physical pages used by the system, pages available to the user, virtual pages mapped, page table hits, pages from free, and total page faults.
+  - For each trace file, print the per-process page table usage (used entries and wasted bytes).
+  - Ensure that the output is consistent across different simulation runs.
+  - Conduct end-to-end testing by running the complete simulation with a variety of trace files and parameters.
+- **Deliverables:**
+  - A final output function that collects all data from the parsing, virtual memory manager, and statistics modules, and prints the formatted results.
+  - Test runs that generate output files matching the required naming and format (e.g., `Team_XX_Sim_n_M#2.txt`).
 
 ## Milestone 3: Cache Simulation Results
