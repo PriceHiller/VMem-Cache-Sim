@@ -135,9 +135,11 @@ char *VirtualMemory_to_string(SimulationStats *sim) {
         str);
     for (int i = 0; i < sim->processCt; i++) {
         PageTableProcess *proc = &sim->pageTableProcesses[i];
-        float usage_percent = ((float)proc->usedPTE/(float)proc->totalPTE)*100.0f;
+        float usage_percent =
+            ((float)proc->usedPTE / (float)proc->totalPTE) * 100.0f;
         str = str_fmt("%s[%d] %s:\n", str, i, proc->processName);
-        str = str_fmt("%s\tUsed Page Table Entries: %u  ( %.2f%% )\n", str, proc->usedPTE, usage_percent);
+        str = str_fmt("%s\tUsed Page Table Entries: %u  ( %.2f%% )\n", str,
+                      proc->usedPTE, usage_percent);
         str = str_fmt("%s\tPage Table Wasted: %u bytes\n\n", str,
                       proc->wastedPageTable);
     }
