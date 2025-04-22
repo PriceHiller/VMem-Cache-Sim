@@ -2,22 +2,24 @@
 #include <stdio.h>
 #ifndef TRACE_FILE_READER_H
 
+typedef unsigned int Address;
+
 typedef struct {
     unsigned int address;
     bool valid;
-} Maddr;
+} VAddr;
 
 typedef struct {
     unsigned int len;
-    unsigned int start_address;
-    Maddr dest;
-    Maddr source;
+    Address start;
+    VAddr dest;
+    VAddr source;
 } Instruction;
 
 typedef struct {
     unsigned int count;
     unsigned int capacity;
-    Instruction *instructions;
+    Instruction *items;
 } Instruction_Arr;
 
 bool read_trace_instruction(Instruction *instruction, char *inst_part_one,

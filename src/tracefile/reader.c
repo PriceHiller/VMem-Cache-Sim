@@ -9,7 +9,7 @@
 bool read_trace_instruction(Instruction *instruction, char *inst_part_one,
                             char *inst_part_two) {
     if (sscanf(inst_part_one, "EIP (%d): %x", &instruction->len,
-               &instruction->start_address) != 2) {
+               &instruction->start) != 2) {
         return false;
     };
 
@@ -41,6 +41,15 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
 
     unsigned int line_number = 0;
     while (fgets(line, sizeof(line), trc_file)) {
+        // Continue skipping the first n blank lines
+        while (line_number == 0 &&
+               (!strcmp("\n", line) || !strcmp("\r\n", line))) {
+            if (!fgets(line, sizeof(line), trc_file)) {
+                printf("Reached EOF when attempting to read a trace file, is "
+                       "the content correct?\n");
+                exit(1);
+            }
+        }
         if (line_number % 3 == 0) {
             memcpy(inst_part_one, line, 1024);
         } else if (line_number % 3 == 1) {
@@ -50,16 +59,14 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
             // instruction
             if (instructions.count >= instructions.capacity) {
                 unsigned int desired_capacity = (instructions.capacity + 1) * 2;
-                printf("Desired cap: %d\n", desired_capacity);
-                Instruction *realloced_instructions =
-                    realloc(instructions.instructions,
-                            sizeof(Instruction) * desired_capacity);
+                Instruction *realloced_instructions = realloc(
+                    instructions.items, sizeof(Instruction) * desired_capacity);
                 if (realloced_instructions == NULL) {
                     printf("Failed to allocate enough memory for reading "
                            "instructions from trace file!\n");
                     exit(1);
                 }
-                instructions.instructions = realloced_instructions;
+                instructions.items = realloced_instructions;
                 instructions.capacity = desired_capacity;
             }
 
@@ -69,7 +76,7 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
                 printf("Failed to read an instruction!\n");
                 exit(1);
             }
-            instructions.instructions[instructions.count - 1] = new_instruction;
+            instructions.items[instructions.count - 1] = new_instruction;
         }
         line_number++;
     }
@@ -77,10 +84,10 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
 }
 
 char *Instruction_get_str(Instruction *instruction) {
-    return str_fmt(
-        "Start Address: [%8x] | Length: %d | Source: [%8x], Valid: [%d] "
-        "| Dest: [%8x], Valid: [%d]",
-        instruction->start_address, instruction->len,
-        instruction->source.address, instruction->source.valid,
-        instruction->dest.address, instruction->dest.valid);
+    return str_fmt("Length: %d | Start: %8x | Source: "
+                   "%8x, Valid: %d "
+                   "| Dest: %8x, Valid: %d",
+                   instruction->len, instruction->start,
+                   instruction->source.address, instruction->source.valid,
+                   instruction->dest.address, instruction->dest.valid);
 }
