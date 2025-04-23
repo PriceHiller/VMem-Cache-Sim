@@ -35,6 +35,11 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < cache_params.traceFiles.count; i++) {
         FILE *trace_file = fopen(cache_params.traceFiles.files[i], "r");
+        if (trace_file == NULL) {
+            printf("Failed to read trace file '%s'!\n",
+                   cache_params.traceFiles.files[i]);
+            exit(1);
+        }
         Instruction_Arr instructions = read_trace_file(trace_file);
         fclose(trace_file);
 
