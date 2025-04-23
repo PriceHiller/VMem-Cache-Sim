@@ -1,48 +1,14 @@
-#include <math.h>
-#include <stdio.h>
+#include "memorymanagement.h"
+#include "../lib/types/types.h"
 #include <stdlib.h>
-#include <string.h>
 
 #define PAGE_SIZE 4096
 #define VIR_SPACE 524288
 
-typedef struct {
-    int valid;
-    int physPage;
-} PTE;
-
-typedef struct {
-    PTE *pageTable;
-} Proc;
-
-typedef struct {
-    int used;
-    double usage;
-    int waste;
-} PageTableUsage;
-
-typedef struct {
-    int totalPhys;
-    int *freeList;
-    int freeCount;
-    int sysPages;
-    int freePages;
-} PhysMem;
-
-typedef struct {
-    int sysPages;
-    int freePages;
-    int mapped;
-    int hits;
-    int pagesFromFree;
-    int faults;
-    PageTableUsage perProc[3];
-} vmstats;
-
 PhysMem physmem;
 
-void initPhysMem(int physMemMB, int osPercent, vmstats *stats) {
-    int physBytes = physMemMB * 1024 * 1024;
+void initPhysMem(Byte physMemMB, int osPercent, VMStats *stats) {
+    Byte physBytes = physMemMB;
     int totalPages = physBytes / PAGE_SIZE;
     physmem.totalPhys = totalPages;
 
@@ -85,7 +51,7 @@ int replacePage(Proc *proc) {
     return -1;
 }
 
-int mapPage(Proc *proc, int vPage, vmstats *stats) {
+int mapPage(Proc *proc, int vPage, VMStats *stats) {
     int physPage;
     if (physmem.freeCount > 0) {
         physPage = physmem.freeList[--physmem.freeCount];
@@ -103,10 +69,11 @@ int mapPage(Proc *proc, int vPage, vmstats *stats) {
     return physPage;
 }
 
-int accessMemory(Proc *proc, int address, vmstats *stats, int ProcIndex) {
+int accessMemory(Proc *proc, int address, VMStats *stats) {
     int vPage = address / PAGE_SIZE;
     int offset = address % PAGE_SIZE;
     stats->mapped++;
+    proc->pageTableCount = physmem.totalPhys;
 
     int physPage = lookupPage(proc, vPage);
     if (physPage == -1) {
@@ -119,7 +86,7 @@ int accessMemory(Proc *proc, int address, vmstats *stats, int ProcIndex) {
     return physPage * PAGE_SIZE + offset;
 }
 
-int countused(PTE *table) {
+int count_used_pte_entries(PTE *table) {
     int used = 0;
     for (int i = 0; i < VIR_SPACE; i++) {
         if (table[i].valid)

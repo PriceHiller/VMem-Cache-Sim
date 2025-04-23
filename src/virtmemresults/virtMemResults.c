@@ -1,11 +1,10 @@
 #include "virtMemResults.h"
+#include "../lib/types/types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "../lib/types/virtualMemory.h"
 
-#define BYTES_KB 1024                     // already in types.h, remove later
-#define PAGE_SIZE_BYTES (4ULL * BYTES_KB) // a page is 4K
+#define PAGE_SIZE_BYTES (4ULL * BYTES_KB)      // a page is 4K
 #define PAGE_TABLE_ENTRIES (512ULL * BYTES_KB) // number of PTE fixed at 512K
 
 SimulationStats *virtualMemResults(int percentMemoryUsed, int numPages,

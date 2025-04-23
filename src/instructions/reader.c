@@ -1,5 +1,4 @@
 #include "reader.h"
-#include "../lib/fmtstr/fmtstr.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -81,13 +80,4 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
         line_number++;
     }
     return instructions;
-}
-
-char *Instruction_get_str(Instruction *instruction) {
-    return str_fmt("Length: %d | Start: %8x | Source: "
-                   "%8x, Valid: %d "
-                   "| Dest: %8x, Valid: %d",
-                   instruction->len, instruction->start,
-                   instruction->source.address, instruction->source.valid,
-                   instruction->dest.address, instruction->dest.valid);
 }
