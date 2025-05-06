@@ -1,7 +1,10 @@
 #ifndef LIBTYPES_CACHE_H
 #define LIBTYPES_CACHE_H
 
+#include "../../instructions/address.h"
 #include "types.h"
+#include <stdbool.h>
+#include <sys/types.h>
 
 typedef enum { RP_ROUND_ROBIN, RP_RANDOM, RP_UNKNOWN } ReplacementPolicy;
 
@@ -30,13 +33,45 @@ typedef struct {
     int cacheBits;
     int sets;
     int numBlocks;
-    int indexSize;
-    int offsetSize;
-    int tagSize;
+    int associativity;
+    NumBits indexBits;
+    NumBits offsetBits;
+    NumBits tagBits;
     int overheadSize;
     Byte memorySize;
     double cost;
     double costPerKb;
 } CacheValues;
+
+typedef struct {
+    Address index;
+    Address tag;
+    bool valid;
+} CacheBlock;
+
+typedef struct {
+    Address index;
+    CacheBlock *blocks;
+    unsigned int next_block_rp;
+} CacheSet;
+
+typedef struct {
+    unsigned int compulsory;
+    unsigned int conflict;
+} CacheStatMisses;
+
+typedef struct {
+    CacheStatMisses misses;
+    unsigned int accesses;
+    unsigned int addresses;
+    unsigned int hits;
+} CacheStat;
+
+typedef struct {
+    CacheValues info;
+    ReplacementPolicy rp;
+    CacheSet *sets;
+    CacheStat stat;
+} Cache;
 
 #endif

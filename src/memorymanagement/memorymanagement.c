@@ -69,7 +69,7 @@ int mapPage(Proc *proc, int vPage, VMStats *stats) {
     return physPage;
 }
 
-int accessMemory(Proc *proc, int address, VMStats *stats) {
+int vmemAccessMemory(Proc *proc, int address, VMStats *stats) {
     int vPage = address / PAGE_SIZE;
     int offset = address % PAGE_SIZE;
     stats->mapped++;

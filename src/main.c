@@ -1,4 +1,5 @@
 #include "cachecalculator/cachecalculator.h"
+#include "cachesim/cachesim.h"
 #include "cmdline/parser.h"
 #include "instructions/address.h"
 #include "instructions/reader.h"
@@ -12,15 +13,15 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
-    CacheParameters cache_params = read_cmdline_args(argc, argv);
+    CacheParameters InputParams = read_cmdline_args(argc, argv);
     CacheValues cache_vals = Cache_calculate_values(
-        cache_params.cacheSize * BYTES_KB, cache_params.blockSize,
-        cache_params.associativity, cache_params.physicalMemory * BYTES_MB);
+        InputParams.cacheSize * BYTES_KB, InputParams.blockSize,
+        InputParams.associativity, InputParams.physicalMemory * BYTES_MB);
     PhysicalMemory physical_memory = PhysicalMemory_calculate_stats(
-        cache_params.physicalMemory * BYTES_MB, cache_params.percentMemoryUsed,
-        cache_params.traceFiles.count);
+        InputParams.physicalMemory * BYTES_MB, InputParams.percentMemoryUsed,
+        InputParams.traceFiles.count);
 
-    char *cache_param_str = CacheParameters_to_string(&cache_params);
+    char *cache_param_str = CacheParameters_to_string(&InputParams);
     char *cache_values_str = CacheValues_to_string(&cache_vals);
     char *physical_mem_str = PhysicalMemory_to_string(&physical_memory);
 
@@ -28,16 +29,19 @@ int main(int argc, char *argv[]) {
            cache_param_str, cache_values_str, physical_mem_str);
 
     VMStats vm_stats;
-    initPhysMem(physical_memory.physBytes, cache_params.percentMemoryUsed,
+    initPhysMem(physical_memory.physBytes, InputParams.percentMemoryUsed,
                 &vm_stats);
-    int proc_count = cache_params.traceFiles.count;
-    PageTableProcess procs[cache_params.traceFiles.count];
+    int proc_count = InputParams.traceFiles.count;
+    PageTableProcess procs[InputParams.traceFiles.count];
 
-    for (int i = 0; i < cache_params.traceFiles.count; i++) {
-        FILE *trace_file = fopen(cache_params.traceFiles.files[i], "r");
+    Cache cache = Cache_init(cache_vals, InputParams.replacementPolicy);
+    unsigned long inst_bytes = 0;
+    unsigned long src_dst_bytes = 0;
+    for (int i = 0; i < InputParams.traceFiles.count; i++) {
+        FILE *trace_file = fopen(InputParams.traceFiles.files[i], "r");
         if (trace_file == NULL) {
             printf("Failed to read trace file '%s'!\n",
-                   cache_params.traceFiles.files[i]);
+                   InputParams.traceFiles.files[i]);
             exit(1);
         }
         Instruction_Arr instructions = read_trace_file(trace_file);
@@ -50,17 +54,33 @@ int main(int argc, char *argv[]) {
 
         for (int i = 0; i < instructions.count; i++) {
             Instruction inst = instructions.items[i];
-            accessMemory(&proc, inst.start, &vm_stats);
-            if (inst.source.valid) {
-                accessMemory(&proc, inst.source.address, &vm_stats);
+            int addr = vmemAccessMemory(&proc, inst.start, &vm_stats);
+            if (addr != -1) {
+                inst_bytes += inst.len;
+                Cache_lookup_addr(&cache, addr, inst.len);
             }
+
             if (inst.dest.valid) {
-                accessMemory(&proc, inst.dest.address, &vm_stats);
+                int dest_addr =
+                    vmemAccessMemory(&proc, inst.dest.address, &vm_stats);
+                if (dest_addr != -1) {
+                    Cache_lookup_addr(&cache, dest_addr, 4);
+                    src_dst_bytes += 4;
+                }
+            }
+
+            if (inst.source.valid) {
+                int source_addr =
+                    vmemAccessMemory(&proc, inst.source.address, &vm_stats);
+                if (source_addr != -1) {
+                    Cache_lookup_addr(&cache, source_addr, 4);
+                    src_dst_bytes += 4;
+                }
             }
         }
         int used_pte_entries = count_used_pte_entries(proc.pageTable);
         PageTableProcess new_process = {
-            .processName = cache_params.traceFiles.files[i],
+            .processName = InputParams.traceFiles.files[i],
             .virtualPagesMapped = vm_stats.mapped - last_vm_stats.mapped,
             .pageTableHits = vm_stats.hits - last_vm_stats.hits,
             .pageFaults = vm_stats.faults - last_vm_stats.faults,
@@ -70,6 +90,7 @@ int main(int argc, char *argv[]) {
                                 physical_memory.pageTableEntryBits) /
                                8};
         procs[i] = new_process;
+        Cache_clear(&cache);
     }
 
     SimulationStats testStats = {.numPages = physical_memory.numPages,
@@ -83,5 +104,17 @@ int main(int argc, char *argv[]) {
                                  .processCt = proc_count};
     char *virtual_mem_str = VirtualMemory_to_string(&testStats);
     printf("\n%s\n", virtual_mem_str);
+
+    printf("***** CACHE SIMULATION RESULTS  *****\n");
+    printf("Total Cache Accesses:           %d  (%d addresses)\n",
+           cache.stat.accesses, cache.stat.addresses);
+    printf("--- Instruction Bytes:          %lu\n", inst_bytes);
+    printf("--- SrcDst Bytes:               %lu\n", src_dst_bytes);
+    printf("Cache Hits:                     %d\n", cache.stat.hits);
+    printf("Cache Misses:                   %d\n",
+           cache.stat.misses.compulsory + cache.stat.misses.conflict);
+    printf("--- Compulsory Misses:          %d\n",
+           cache.stat.misses.compulsory);
+    printf("--- Conflict Misses:            %d\n", cache.stat.misses.conflict);
     return EXIT_SUCCESS;
 }

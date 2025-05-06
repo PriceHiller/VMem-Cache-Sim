@@ -72,7 +72,10 @@ Instruction_Arr read_trace_file(FILE *trc_file) {
             Instruction new_instruction;
             if (!read_trace_instruction(&new_instruction, inst_part_one,
                                         line)) {
-                printf("Failed to read an instruction!\n");
+                printf("Failed to read an instruction from line %d\n",
+                       line_number);
+                printf("Line:\n%s\n", line);
+
                 exit(1);
             }
             instructions.items[instructions.count - 1] = new_instruction;

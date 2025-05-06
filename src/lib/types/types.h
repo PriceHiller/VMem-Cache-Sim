@@ -1,6 +1,8 @@
 #ifndef LIBTYPES_H
 #define LIBTYPES_H
 
+typedef unsigned int NumBits;
+
 #define BYTES_KB 1024
 #define BYTES_MB (1024ULL * BYTES_KB)
 #define BYTES_GB (1024ULL * BYTES_MB)

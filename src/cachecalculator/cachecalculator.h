@@ -3,6 +3,6 @@
 
 #include "../lib/types/cache.h"
 CacheValues Cache_calculate_values(Byte cacheSize, Byte blockSize,
-                                   int associativity, Byte physMem);
+                                   unsigned int associativity, Byte physMem);
 
 #endif

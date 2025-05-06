@@ -1,28 +1,17 @@
 #include "address.h"
 #include "../lib/fmtstr/fmtstr.h"
 
-unsigned int create_bitmask(unsigned int len) {
-    unsigned int mask = 0;
-    for (int i = 0; i < len; i++) {
-        mask <<= 1;
-        mask |= 1;
-    }
-    return mask;
-}
-
 AddrParts get_addr_parts(Address address, NumBits tag_bits, NumBits index_bits,
                          NumBits offset_bits) {
     AddrParts addr_parts;
     addr_parts.address = address;
-    addr_parts.offset.addr = address & create_bitmask(offset_bits);
+    addr_parts.offset.addr = address & ((1 << offset_bits) - 1);
     addr_parts.offset.bits = offset_bits;
 
-    addr_parts.index.addr =
-        (address >> offset_bits) & create_bitmask(index_bits);
+    addr_parts.index.addr = (address >> offset_bits) & ((1 << index_bits) - 1);
     addr_parts.index.bits = index_bits;
 
-    addr_parts.tag.addr =
-        ((address >> offset_bits) >> index_bits) & create_bitmask(tag_bits);
+    addr_parts.tag.addr = (address >> (offset_bits + index_bits));
     addr_parts.tag.bits = tag_bits;
     return addr_parts;
 }

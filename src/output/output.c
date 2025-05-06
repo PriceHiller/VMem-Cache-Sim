@@ -62,11 +62,11 @@ char *CacheValues_to_string(CacheValues *cache_vals) {
                       "Total # Blocks:", str_fmt("%d", cache_vals->numBlocks)));
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(
-                      "Tag Size:", str_fmt("%d bits", cache_vals->tagSize)));
+                      "Tag Size:", str_fmt("%d bits", cache_vals->tagBits)));
     str =
         str_fmt("%s%s\n", str,
                 build_column_aligned_string(
-                    "Index Size:", str_fmt("%d bits", cache_vals->indexSize)));
+                    "Index Size:", str_fmt("%d bits", cache_vals->indexBits)));
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string("Total # Rows:",
                                               str_fmt("%d", cache_vals->sets)));

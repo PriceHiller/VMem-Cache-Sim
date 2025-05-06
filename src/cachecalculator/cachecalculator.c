@@ -24,7 +24,7 @@ int calculateOverheadSize(int numBlocks, int tagSize) {
 }
 
 CacheValues Cache_calculate_values(Byte cache_size_bytes, Byte block_size_bytes,
-                                   int associativity,
+                                   unsigned int associativity,
                                    Byte physical_memory_bytes) {
     CacheValues cv;
 
@@ -44,9 +44,10 @@ CacheValues Cache_calculate_values(Byte cache_size_bytes, Byte block_size_bytes,
     cv.cacheBits = cacheBits;
     cv.sets = sets;
     cv.numBlocks = numBlocks;
-    cv.indexSize = indexSize;
-    cv.offsetSize = offsetSize;
-    cv.tagSize = tagSize;
+    cv.associativity = associativity;
+    cv.indexBits = indexSize;
+    cv.offsetBits = offsetSize;
+    cv.tagBits = tagSize;
     cv.overheadSize = overheadSize;
     cv.memorySize = implementMemorySize;
     cv.costPerKb = COST_PER_KB;

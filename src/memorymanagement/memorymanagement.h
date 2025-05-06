@@ -1,6 +1,7 @@
 #ifndef MEMORYMANAGEMENT_H
 #define MEMORYMANAGEMENT_H
 
+#include "../instructions/address.h"
 #include "../lib/types/types.h"
 
 #define PAGE_SIZE 4096
@@ -43,6 +44,6 @@ typedef struct {
 void initPhysMem(Byte physMemMB, int osPercent, VMStats *stats);
 void freePhysMem();
 void initProc(Proc *proc);
-int accessMemory(Proc *proc, int address, VMStats *stats);
+int vmemAccessMemory(Proc *proc, int address, VMStats *stats);
 int count_used_pte_entries(PTE *table);
 #endif

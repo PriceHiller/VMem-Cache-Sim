@@ -1,7 +1,9 @@
 #ifndef ADDRESS_H
 #define ADDRESS_H
+
+#include "../lib/types/types.h"
+
 typedef unsigned int Address;
-typedef unsigned int NumBits;
 
 typedef struct {
     Address addr;
