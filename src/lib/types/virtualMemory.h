@@ -2,6 +2,7 @@
 #define LIBTYPES_VIRTMEM_H
 
 // structs, go in lib/types folder?
+#include "../../instructions/inst.h"
 #include "types.h"
 
 typedef struct {
@@ -12,6 +13,7 @@ typedef struct {
     unsigned int usedPTE;
     unsigned int totalPTE;
     unsigned int wastedPageTable;
+    Instruction_Arr instructions;
 } PageTableProcess;
 
 typedef struct {

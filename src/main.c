@@ -60,20 +60,20 @@ int main(int argc, char *argv[]) {
                 Cache_lookup_addr(&cache, addr, inst.len);
             }
 
-            if (inst.dest.valid) {
-                int dest_addr =
-                    vmemAccessMemory(&proc, inst.dest.address, &vm_stats);
-                if (dest_addr != -1) {
-                    Cache_lookup_addr(&cache, dest_addr, 4);
-                    src_dst_bytes += 4;
-                }
-            }
-
             if (inst.source.valid) {
                 int source_addr =
                     vmemAccessMemory(&proc, inst.source.address, &vm_stats);
                 if (source_addr != -1) {
                     Cache_lookup_addr(&cache, source_addr, 4);
+                    src_dst_bytes += 4;
+                }
+            }
+
+            if (inst.dest.valid) {
+                int dest_addr =
+                    vmemAccessMemory(&proc, inst.dest.address, &vm_stats);
+                if (dest_addr != -1) {
+                    Cache_lookup_addr(&cache, dest_addr, 4);
                     src_dst_bytes += 4;
                 }
             }
@@ -90,7 +90,6 @@ int main(int argc, char *argv[]) {
                                 physical_memory.pageTableEntryBits) /
                                8};
         procs[i] = new_process;
-        Cache_clear(&cache);
     }
 
     SimulationStats testStats = {.numPages = physical_memory.numPages,
@@ -105,7 +104,7 @@ int main(int argc, char *argv[]) {
     char *virtual_mem_str = VirtualMemory_to_string(&testStats);
     printf("\n%s\n", virtual_mem_str);
 
-    printf("***** CACHE SIMULATION RESULTS  *****\n");
+    printf("***** CACHE SIMULATION RESULTS  *****\n\n");
     printf("Total Cache Accesses:           %d  (%d addresses)\n",
            cache.stat.accesses, cache.stat.addresses);
     printf("--- Instruction Bytes:          %lu\n", inst_bytes);

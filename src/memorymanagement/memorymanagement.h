@@ -2,6 +2,7 @@
 #define MEMORYMANAGEMENT_H
 
 #include "../instructions/address.h"
+#include "../instructions/inst.h"
 #include "../lib/types/types.h"
 
 #define PAGE_SIZE 4096
@@ -15,6 +16,7 @@ typedef struct {
 typedef struct {
     PTE *pageTable;
     unsigned int pageTableCount;
+    Instruction_Arr instructions;
 } Proc;
 
 typedef struct {

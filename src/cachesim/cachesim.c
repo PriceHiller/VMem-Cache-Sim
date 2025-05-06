@@ -1,14 +1,13 @@
 #include "cachesim.h"
 #include "../instructions/address.h"
 #include "../lib/types/cache.h"
-#include <math.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 CacheSet CacheSet_init(Cache *cache, Address index) {
     CacheSet set = {.index = index,
+                    .next_block_rp = 0,
                     .blocks = (CacheBlock *)calloc(cache->info.associativity,
                                                    sizeof(CacheBlock))};
     return set;
@@ -17,7 +16,7 @@ CacheBlock CacheBlock_init(Cache *cache, AddrParts addr_parts) {
     CacheBlock block = {
         .index = addr_parts.index.addr,
         .tag = addr_parts.tag.addr,
-        .valid = true,
+        .valid = false,
     };
     return block;
 }
@@ -78,17 +77,14 @@ void Cache_replace_block(Cache *cache, CacheBlock block) {
     }
 };
 
-void Cache_handle_lookup(Cache *cache, Address addr) {
+void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
     cache->stat.accesses++;
-
-    AddrParts addr_parts =
-        get_addr_parts(addr, cache->info.tagBits, cache->info.indexBits,
-                       cache->info.offsetBits);
 
     CacheBlock block;
     CacheBlock addr_block = CacheBlock_init(cache, addr_parts);
-    CacheSet *set = &cache->sets[addr_block.index];
-    for (int offset = 0; offset < cache->info.associativity; offset++) {
+    CacheSet *set = &cache->sets[addr_parts.index.addr];
+    for (unsigned int offset = 0; offset < cache->info.associativity;
+         offset++) {
         block = set->blocks[offset];
         if (block.valid && block.tag == addr_block.tag) {
             // Hit!
@@ -97,10 +93,13 @@ void Cache_handle_lookup(Cache *cache, Address addr) {
         }
 
         if (!block.valid) {
-            // We have an empty location to place the block
+            // We have an empty location to place the block, and we haven't
+            // touched this block yet since we started lookuping up blocks in
+            // our cache
             //
             // Compulsory miss
             cache->stat.misses.compulsory++;
+            addr_block.valid = true;
             set->blocks[offset] = addr_block;
             return;
         }
@@ -109,27 +108,26 @@ void Cache_handle_lookup(Cache *cache, Address addr) {
     // If we didn't find an empty location in the set for the address and we
     // didn't get a hit, then we have a conflict.
     cache->stat.misses.conflict++;
+    addr_block.valid = true;
     Cache_replace_block(cache, addr_block);
 }
 
 void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
-
     cache->stat.addresses++;
-    unsigned int block_size_bytes = 2 << (cache->info.offsetBits - 1);
+    unsigned int block_size_bytes = 1 << cache->info.offsetBits;
 
-    while (true) {
-        Cache_handle_lookup(cache, addr);
-
+    while (len > 0) {
         AddrParts addr_parts =
             get_addr_parts(addr, cache->info.tagBits, cache->info.indexBits,
                            cache->info.offsetBits);
 
-        Address block_offset = addr_parts.offset.addr;
-        block_offset = block_size_bytes - block_offset;
-        if (len <= block_offset) {
-            break;
-        }
-        len -= block_offset;
-        addr += block_offset;
+        Cache_handle_lookup(cache, addr_parts);
+
+        unsigned int bytes_remaining_in_block =
+            block_size_bytes - addr_parts.offset.addr;
+        unsigned int bytes_to_process =
+            (len < bytes_remaining_in_block) ? len : bytes_remaining_in_block;
+        len -= bytes_to_process;
+        addr += bytes_to_process;
     };
 }

@@ -29,7 +29,7 @@ VAddrParts get_vaddr_parts(AddrParts addr_parts) {
 }
 
 char *addr_parts_str(AddrParts *attr_parts) {
-    return str_fmt("AddrParts(address=0x%X, tag=0x%X, index=0x%X, offset=0x%X)",
+    return str_fmt("AddrParts(address=0x%X, index=0x%X, tag=0x%X, offset=0x%X)",
                    attr_parts->address, attr_parts->tag.addr,
                    attr_parts->index.addr, attr_parts->offset.addr);
 }

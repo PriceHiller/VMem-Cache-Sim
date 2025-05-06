@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
     unsigned int count;
     unsigned int capacity;
+    unsigned int ip;
     Instruction *items;
 } Instruction_Arr;
 
