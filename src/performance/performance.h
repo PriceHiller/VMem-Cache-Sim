@@ -1,6 +1,6 @@
 #pragma once
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
     uint64_t totalCycles;
@@ -10,15 +10,15 @@ typedef struct {
     uint64_t hitCycles;
     uint64_t missCycles;
     uint64_t pageFaultCycles;
-    double   CPI;
+    double CPI;
 } PerfStats;
 
 // init all counts to zero
 void perf_init(PerfStats *ps);
 
 // record one cache‐row of an instruction fetch:
-void perf_recordInstrRow(PerfStats *ps, bool cacheHit,
-                         bool firstRow, int instrBytes, int blockSize);
+void perf_recordInstrRow(PerfStats *ps, bool cacheHit, bool firstRow,
+                         int instrBytes, int blockSize);
 
 // record one cache‐row of a data access (always 4 bytes):
 //   cacheHit: true=hit, false=miss
@@ -30,5 +30,3 @@ void perf_recordPageFault(PerfStats *ps);
 
 // compute CPI = totalCycles / totalInstructions
 void perf_finalize(PerfStats *ps);
-
-
