@@ -14,21 +14,14 @@ void sendToSim(Address address, Byte addrSize, Byte blockSize,
 
     if (type == EIP) {
         access.eipBytes += addrSize;
-        // increment total instructions by 1, e.g. totalInstructions++;
-        // increment total cycles by 2, e.g. totalCycles += 2;
     } else if (type == SRC) {
         access.srcBytes += addrSize;
-        // increment total instructions by 1, e.g. totalInstructions++;
-        // increment total cycles by 1, e.g. totalCycles++;
     } else if (type == DST) {
         access.dstBytes += addrSize;
-        // increment total instructions by 1, e.g. totalInstructions++;
-        // increment total cycles by 1, e.g. totalCycles++;
     }
 
     unsigned int i;
     for (i = 0; i < rows; i++) {
-        unsigned int rowAddress = (address & ~(blockSize - 1)) + i * blockSize;
         access.totalCacheAccesses++;
     }
 }
