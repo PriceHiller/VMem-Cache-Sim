@@ -2,6 +2,9 @@
 #include "../lib/types/cache.h"
 #include "../lib/types/physicalmemory.h"
 #include "../virtmemresults/virtMemResults.h"
+#include "../performance/performance.h"
+#include "../integration/integration.h"
+#include "../cachesim/cachesim.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -143,5 +146,76 @@ char *VirtualMemory_to_string(SimulationStats *sim) {
         str = str_fmt("%s\tPage Table Wasted: %u bytes\n\n", str,
                       proc->wastedPageTable);
     }
+    return str;
+}
+
+char *CacheSimulation_to_string(CacheAccess *access, PerfStats *perf, Cache *cache, CacheParameters *params) {
+    //hit and miss rates
+    float hitRate = 0.0f, missRate = 0.0f;
+    if (perf->totalCycles > 0) {
+        hitRate = 100.0f * ((float)perf->hitCycles / perf->totalCycles);
+        missRate = 100.0f * ((float)perf->missCycles / perf->totalCycles);
+    }
+
+    //unused cache space and unused cache blocks
+    unsigned int totalBlocks = cache->info.numBlocks;
+    unsigned int unusedBlocks = (cache->stat.misses.compulsory < totalBlocks) ? (totalBlocks - cache->stat.misses.compulsory) : 0;
+
+    int overheadPerBlock = (totalBlocks > 0) ? cache->info.overheadSize / totalBlocks : 0;
+    float unusedKB = ((float)unusedBlocks * (params->blockSize + overheadPerBlock)) / 1024.0f;
+    float totalKB = ((float)totalBlocks * (params->blockSize + overheadPerBlock)) / 1024.0f;
+
+    float unusedPercent = (totalKB > 0.0f) ? (100.0f * unusedKB / totalKB) : 0.0f;
+    float wasteCost = unusedKB * 0.12f;
+
+    char *str = str_fmt("%s\n\n", build_section_title("CACHE SIMULATION RESULTS"));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "Total Cache Accesses:", str_fmt("%u (%u addresses)", 
+                cache->stat.accesses, access->totalAddresses)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "--- Instruction Bytes:", str_fmt("%llu", access->eipBytes)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "--- SrcDst Bytes:", str_fmt("%llu", access->srcBytes + access->dstBytes)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "Cache Hits:", str_fmt("%u", cache->stat.hits)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "Cache Misses:", str_fmt("%u", cache->stat.misses.compulsory + cache->stat.misses.conflict)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "--- Compulsory Misses:", str_fmt("%u", cache->stat.misses.compulsory)));
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string(
+            "--- Conflict Misses:", str_fmt("%u\n", cache->stat.misses.conflict)));
+
+    str = str_fmt("%s%s\n\n", str, build_section_title("*****  CACHE HIT & MISS RATE:  *****"));
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string("Hit Rate:", str_fmt("%.8f%%", hitRate)));
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string("Miss Rate:", str_fmt("%.8f%%", missRate)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string("CPI:", str_fmt("%.4f Cycles/Instruction (%llu)", 
+            perf->CPI, perf->totalCycles)));
+
+    str = str_fmt("%s%s\n", str,
+        build_column_aligned_string("Unused Cache Space:", 
+            str_fmt("%.2f KB / %.2f KB = %.2f%%  Waste: $%.2f/chip",
+                unusedKB, totalKB, unusedPercent, wasteCost)));
+
+    str = str_fmt("%s%s", str,
+        build_column_aligned_string("Unused Cache Blocks:", 
+            str_fmt("%u / %u", unusedBlocks, totalBlocks)));
+
     return str;
 }
