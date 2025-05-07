@@ -3,6 +3,7 @@
 
 // structs, go in lib/types folder?
 #include "../../instructions/inst.h"
+#include "../../memorymanagement/memorymanagement.h"
 #include "types.h"
 
 typedef struct {
@@ -13,7 +14,7 @@ typedef struct {
     unsigned int usedPTE;
     unsigned int totalPTE;
     unsigned int wastedPageTable;
-    Instruction_Arr instructions;
+    Proc proc;
 } PageTableProcess;
 
 typedef struct {

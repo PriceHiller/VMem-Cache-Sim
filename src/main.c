@@ -31,8 +31,9 @@ int main(int argc, char *argv[]) {
     VMStats vm_stats;
     initPhysMem(physical_memory.physBytes, InputParams.percentMemoryUsed,
                 &vm_stats);
-    int proc_count = InputParams.traceFiles.count;
-    PageTableProcess procs[InputParams.traceFiles.count];
+    unsigned int proc_count = InputParams.traceFiles.count;
+    PageTableProcess proc_ptps[InputParams.traceFiles.count];
+    Proc procs[InputParams.traceFiles.count];
 
     Cache cache = Cache_init(cache_vals, InputParams.replacementPolicy);
     unsigned long inst_bytes = 0;
@@ -49,12 +50,38 @@ int main(int argc, char *argv[]) {
 
         Proc proc;
         initProc(&proc);
+        procs[i] = proc;
+        proc.instructions = instructions;
+        PageTableProcess new_process = {
+            .processName = InputParams.traceFiles.files[i],
+            .proc = proc,
+            .virtualPagesMapped = vm_stats.mapped,
+            .pageTableHits = vm_stats.hits,
+            .pageFaults = vm_stats.faults,
+            .usedPTE = 0,
+            .totalPTE = VIR_SPACE,
+            .wastedPageTable =
+                ((VIR_SPACE)*physical_memory.pageTableEntryBits) / 8};
+        proc_ptps[i] = new_process;
+    }
+
+    unsigned int ptp_num = 0;
+    bool procs_finished = false;
+    while (!procs_finished) {
+        PageTableProcess *ptp = &proc_ptps[ptp_num];
         VMStats last_vm_stats;
         memcpy(&last_vm_stats, &vm_stats, sizeof(vm_stats));
 
-        for (int i = 0; i < instructions.count; i++) {
-            Instruction inst = instructions.items[i];
-            int addr = vmemAccessMemory(&proc, inst.start, &vm_stats);
+        Proc *proc = &ptp->proc;
+
+        for (int i = 0; i < InputParams.instructionsPerTimeSlice; i++) {
+            if (proc->instructions.ip >= proc->instructions.count) {
+                break;
+            }
+            Instruction inst = proc->instructions.items[proc->instructions.ip];
+            proc->instructions.ip += 1;
+
+            int addr = vmemAccessMemory(proc, inst.start, &vm_stats);
             if (addr != -1) {
                 inst_bytes += inst.len;
                 Cache_lookup_addr(&cache, addr, inst.len);
@@ -62,7 +89,7 @@ int main(int argc, char *argv[]) {
 
             if (inst.source.valid) {
                 int source_addr =
-                    vmemAccessMemory(&proc, inst.source.address, &vm_stats);
+                    vmemAccessMemory(proc, inst.source.address, &vm_stats);
                 if (source_addr != -1) {
                     Cache_lookup_addr(&cache, source_addr, 4);
                     src_dst_bytes += 4;
@@ -71,25 +98,37 @@ int main(int argc, char *argv[]) {
 
             if (inst.dest.valid) {
                 int dest_addr =
-                    vmemAccessMemory(&proc, inst.dest.address, &vm_stats);
+                    vmemAccessMemory(proc, inst.dest.address, &vm_stats);
                 if (dest_addr != -1) {
                     Cache_lookup_addr(&cache, dest_addr, 4);
                     src_dst_bytes += 4;
                 }
             }
         }
-        int used_pte_entries = count_used_pte_entries(proc.pageTable);
-        PageTableProcess new_process = {
-            .processName = InputParams.traceFiles.files[i],
-            .virtualPagesMapped = vm_stats.mapped - last_vm_stats.mapped,
-            .pageTableHits = vm_stats.hits - last_vm_stats.hits,
-            .pageFaults = vm_stats.faults - last_vm_stats.faults,
-            .usedPTE = used_pte_entries,
-            .totalPTE = VIR_SPACE,
-            .wastedPageTable = ((VIR_SPACE - used_pte_entries) *
+
+        int used_pte_entries = count_used_pte_entries(proc->pageTable);
+        ptp->virtualPagesMapped += vm_stats.mapped - last_vm_stats.mapped;
+        ptp->pageTableHits = vm_stats.hits - last_vm_stats.hits;
+        ptp->pageFaults = vm_stats.faults - last_vm_stats.faults;
+        ptp->usedPTE = used_pte_entries;
+        ptp->totalPTE = VIR_SPACE;
+        ptp->wastedPageTable = ((VIR_SPACE - used_pte_entries) *
                                 physical_memory.pageTableEntryBits) /
-                               8};
-        procs[i] = new_process;
+                               8;
+
+        ptp_num++;
+        if (ptp_num >= proc_count) {
+            ptp_num = 0;
+        }
+
+        for (unsigned int proc_num = 0; proc_num < proc_count; proc_num++) {
+            Proc *check_proc = &proc_ptps[proc_num].proc;
+            if (check_proc->instructions.count == check_proc->instructions.ip) {
+                procs_finished = true;
+            } else {
+                procs_finished = false;
+            }
+        }
     }
 
     SimulationStats testStats = {.numPages = physical_memory.numPages,
@@ -99,7 +138,7 @@ int main(int argc, char *argv[]) {
                                  .pageTableHits = vm_stats.hits,
                                  .pagesFromFree = vm_stats.pagesFromFree,
                                  .totalPageFaults = vm_stats.faults,
-                                 .pageTableProcesses = procs,
+                                 .pageTableProcesses = proc_ptps,
                                  .processCt = proc_count};
     char *virtual_mem_str = VirtualMemory_to_string(&testStats);
     printf("\n%s\n", virtual_mem_str);
