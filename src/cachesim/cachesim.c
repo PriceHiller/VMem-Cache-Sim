@@ -124,9 +124,9 @@ void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
         Cache_handle_lookup(cache, addr_parts);
 
         unsigned int bytes_remaining_in_block =
-            block_size_bytes - addr_parts.offset.addr;
+            block_size_bytes;
         unsigned int bytes_to_process =
-            (len < bytes_remaining_in_block) ? len : bytes_remaining_in_block;
+            (len < bytes_remaining_in_block + 1) ? len : bytes_remaining_in_block;
         len -= bytes_to_process;
         addr += bytes_to_process;
     };
