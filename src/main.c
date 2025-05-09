@@ -8,6 +8,7 @@
 #include "output/output.h"
 #include "performance/performance.h"
 #include "physmemcalc/physmemcalc.h"
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +25,7 @@ int main(int argc, char *argv[]) {
     char *cache_param_str = CacheParameters_to_string(&InputParams);
     char *cache_values_str = CacheValues_to_string(&cache_vals);
     char *physical_mem_str = PhysicalMemory_to_string(&physical_memory);
+    srand((unsigned int)time(NULL));
 
     printf("Cache Simulator - CS 3853 - Team #6\n\n%s\n\n%s\n\n%s\n",
            cache_param_str, cache_values_str, physical_mem_str);
@@ -33,7 +35,6 @@ int main(int argc, char *argv[]) {
                 &vm_stats);
     unsigned int proc_count = InputParams.traceFiles.count;
     PageTableProcess proc_ptps[InputParams.traceFiles.count];
-    Proc procs[InputParams.traceFiles.count];
 
     Cache cache = Cache_init(cache_vals, InputParams.replacementPolicy);
     unsigned long inst_bytes = 0;
@@ -50,7 +51,6 @@ int main(int argc, char *argv[]) {
 
         Proc proc;
         initProc(&proc);
-        procs[i] = proc;
         proc.instructions = instructions;
         PageTableProcess new_process = {
             .processName = InputParams.traceFiles.files[i],
@@ -160,14 +160,14 @@ int main(int argc, char *argv[]) {
                                  .totalPageFaults = vm_stats.faults,
                                  .pageTableProcesses = proc_ptps,
                                  .processCt = proc_count};
-    char *virtual_mem_str = VirtualMemory_to_string(&testStats);
     CacheAccess access = {.totalCacheAccesses = cache.stat.accesses,
                           .totalRowsAccessed = cache.stat.accesses,
                           .eipBytes = inst_bytes,
                           .srcDstBytes = src_dst_bytes,
                           .totalAddresses = cache.stat.addresses};
+    char *virtual_mem_str = VirtualMemory_to_string(&testStats);
     char *cache_sim_str =
         CacheSimulation_to_string(&access, &ps, &cache, &InputParams);
-    printf("\n%s\n", cache_sim_str);
+    printf("\n%s\n%s\n", virtual_mem_str, cache_sim_str);
     return EXIT_SUCCESS;
 }
