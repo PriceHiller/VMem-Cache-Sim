@@ -222,10 +222,10 @@ char *CacheSimulation_to_string(CacheAccess *access, PerfStats *perf,
                   build_section_title("*****  CACHE HIT & MISS RATE:  *****"));
     str = str_fmt(
         "%s%s\n", str,
-        build_column_aligned_string("Hit Rate:", str_fmt("%.8f%%", hitRate)));
+        build_column_aligned_string("Hit Rate:", str_fmt("%.4f%%", hitRate)));
     str = str_fmt(
         "%s%s\n", str,
-        build_column_aligned_string("Miss Rate:", str_fmt("%.8f%%", missRate)));
+        build_column_aligned_string("Miss Rate:", str_fmt("%.4f%%", missRate)));
 
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(

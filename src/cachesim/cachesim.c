@@ -120,8 +120,7 @@ void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len,
             (len <= offset_addr) ? len : offset_addr;
 
         bool hit = Cache_handle_lookup(cache, addr_parts);
-
-        perf_recordCacheLookup(ps, hit, bytes_to_process, len);
+        perf_recordCacheLookup(ps, hit, block_size_bytes, bytes_to_process);
 
         if (len <= offset_addr)
             break;

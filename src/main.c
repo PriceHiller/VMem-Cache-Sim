@@ -103,23 +103,30 @@ int main(int argc, char *argv[]) {
             }
 
             if (inst.source.valid) {
+                // +1 cycle for EA calc
+                ps.totalCycles += 1;
                 int source_addr = vmemAccessMemory(
                     proc, &cache, inst.source.address, &vm_stats, &ps);
                 if (source_addr != -1) {
-                    ps.totalCycles += 1;
                     Cache_lookup_addr(&cache, source_addr, 4, &ps);
                     src_dst_bytes += 4;
                 }
             }
 
             if (inst.dest.valid) {
+                // +1 cycle for EA calc
+                ps.totalCycles += 1;
                 int dest_addr = vmemAccessMemory(
                     proc, &cache, inst.dest.address, &vm_stats, &ps);
                 if (dest_addr != -1) {
-                    ps.totalCycles += 1;
                     Cache_lookup_addr(&cache, dest_addr, 4, &ps);
                     src_dst_bytes += 4;
                 }
+            }
+
+            if (inst.source.valid && inst.dest.valid) {
+                // Handle mem reads (MOV)
+                ps.totalCycles += 2;
             }
         }
 
@@ -161,21 +168,6 @@ int main(int argc, char *argv[]) {
                           .totalAddresses = cache.stat.addresses};
     char *cache_sim_str =
         CacheSimulation_to_string(&access, &ps, &cache, &InputParams);
-    printf("%s\n", cache_sim_str);
-    // printf("\n%s\n", virtual_mem_str);
-    //
-    // printf("***** CACHE SIMULATION RESULTS  *****\n\n");
-    // printf("Total Cache Accesses:           %d  (%d addresses)\n",
-    //        cache.stat.accesses, cache.stat.addresses);
-    // printf("--- Instruction Bytes:          %lu\n", inst_bytes);
-    // printf("--- SrcDst Bytes:               %lu\n", src_dst_bytes);
-    // printf("Cache Hits:                     %d\n", cache.stat.hits);
-    // printf("Cache Misses:                   %d\n",
-    //        cache.stat.misses.compulsory + cache.stat.misses.conflict);
-    // printf("--- Compulsory Misses:          %d\n",
-    //        cache.stat.misses.compulsory);
-    // printf("--- Conflict Misses:            %d\n",
-    // cache.stat.misses.conflict);
-
+    printf("\n%s\n", cache_sim_str);
     return EXIT_SUCCESS;
 }

@@ -10,10 +10,9 @@ void perf_recordInstrStart(PerfStats *ps, int instrBytes) {
     ps->instrBytes += instrBytes; // count bytes fetched
 }
 
-void perf_recordCacheLookup(PerfStats *ps, bool cacheHit,
-                            unsigned int blockSize, unsigned int len) {
+void perf_recordCacheLookup(PerfStats *ps, bool cacheHit, unsigned int blockSize, unsigned int len) {
     int cc = cacheHit ? 1 : missPenalty(blockSize);
-    ps->totalCycles += cc + 1; // +1 cycle for EA calc
+    ps->totalCycles += cc;
     if (cacheHit)
         ps->hitCycles += cc;
     else
