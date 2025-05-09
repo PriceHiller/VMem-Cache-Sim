@@ -151,27 +151,30 @@ char *VirtualMemory_to_string(SimulationStats *sim) {
 
 char *CacheSimulation_to_string(CacheAccess *access, PerfStats *perf,
                                 Cache *cache, CacheParameters *params) {
+
+    perf_finalize(perf);
+
     // hit and miss rates
     float hitRate = 0.0f, missRate = 0.0f;
+    unsigned int total_cache_misses =
+        cache->stat.misses.compulsory + cache->stat.misses.conflict;
     if (perf->totalCycles > 0) {
-        hitRate = 100.0f * ((float)perf->hitCycles / perf->totalCycles);
-        missRate = 100.0f * ((float)perf->missCycles / perf->totalCycles);
+        hitRate =
+            100.0f * ((float)cache->stat.hits / (float)cache->stat.accesses);
+        missRate = 100.0f *
+                   ((float)(total_cache_misses) / (float)cache->stat.accesses);
     }
 
     // unused cache space and unused cache blocks
     unsigned int totalBlocks = cache->info.numBlocks;
-    unsigned int unusedBlocks =
-        (cache->stat.misses.compulsory < totalBlocks)
-            ? (totalBlocks - cache->stat.misses.compulsory)
-            : 0;
+    int unusedBlocks = cache->info.numBlocks - cache->stat.misses.compulsory;
 
     int overheadPerBlock =
         (totalBlocks > 0) ? cache->info.overheadSize / totalBlocks : 0;
     float unusedKB =
-        ((float)unusedBlocks * (params->blockSize + overheadPerBlock)) /
+        (float)(unusedBlocks * (params->blockSize + overheadPerBlock)) /
         1024.0f;
-    float totalKB =
-        ((float)totalBlocks * (params->blockSize + overheadPerBlock)) / 1024.0f;
+    float totalKB = cache->info.memorySize / 1024.f;
 
     float unusedPercent =
         (totalKB > 0.0f) ? (100.0f * unusedKB / totalKB) : 0.0f;
@@ -191,10 +194,10 @@ char *CacheSimulation_to_string(CacheAccess *access, PerfStats *perf,
                 build_column_aligned_string("--- Instruction Bytes:",
                                             str_fmt("%llu", access->eipBytes)));
 
-    str = str_fmt("%s%s\n", str,
-                  build_column_aligned_string(
-                      "--- SrcDst Bytes:",
-                      str_fmt("%llu", access->srcBytes + access->dstBytes)));
+    str =
+        str_fmt("%s%s\n", str,
+                build_column_aligned_string(
+                    "--- SrcDst Bytes:", str_fmt("%llu", access->srcDstBytes)));
 
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string("Cache Hits:",
@@ -227,7 +230,7 @@ char *CacheSimulation_to_string(CacheAccess *access, PerfStats *perf,
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(
                       "CPI:", str_fmt("%.4f Cycles/Instruction (%llu)",
-                                      perf->CPI, perf->totalCycles)));
+                                      perf->CPI, perf->totalInstructions)));
 
     str = str_fmt("%s%s\n", str,
                   build_column_aligned_string(

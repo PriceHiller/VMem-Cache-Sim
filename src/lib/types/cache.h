@@ -37,8 +37,9 @@ typedef struct {
     NumBits indexBits;
     NumBits offsetBits;
     NumBits tagBits;
+    int overheadBitsPerBlock;
     int overheadSize;
-    Byte memorySize;
+    int memorySize;
     double cost;
     double costPerKb;
 } CacheValues;

@@ -27,14 +27,12 @@ typedef struct {
     unsigned int totalCacheAccesses;
     unsigned int totalRowsAccessed;
     Byte eipBytes; // instruction
-    Byte srcBytes;
-    Byte dstBytes;
+    Byte srcDstBytes;
     unsigned int totalAddresses;
 } CacheAccess;
 
 extern CacheAccess access;
 
 unsigned int rowsAccessed(Address address, Byte addrSize, Byte blockSize);
-void sendToSim(Address address, Byte addrSize, Byte blockSize, AccessType type);
 
 #endif

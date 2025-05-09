@@ -2,6 +2,7 @@
 #include "../cachesim/cachesim.h"
 #include "../lib/types/cache.h"
 #include "../lib/types/types.h"
+#include "../performance/performance.h"
 #include <stdlib.h>
 
 #define PAGE_SIZE 4096
@@ -60,7 +61,8 @@ void unmapPage(Proc *proc, int page) {
     physmem.freeList[page - physmem.sysPages] = 0;
 }
 
-int mapPage(Proc *proc, Cache *cache, int vPage, VMStats *stats) {
+int mapPage(Proc *proc, Cache *cache, int vPage, VMStats *stats,
+            PerfStats *ps) {
     int physPage;
     if (physmem.freeCount > 0) {
         int next_page = 0;
@@ -71,6 +73,7 @@ int mapPage(Proc *proc, Cache *cache, int vPage, VMStats *stats) {
     } else {
         physPage = replacePage(proc, cache);
         if (physPage == -1) {
+            perf_recordPageFault(ps);
             stats->faults++;
             return -1;
         }
@@ -81,7 +84,8 @@ int mapPage(Proc *proc, Cache *cache, int vPage, VMStats *stats) {
     return physPage;
 }
 
-int vmemAccessMemory(Proc *proc, Cache *cache, int address, VMStats *stats) {
+int vmemAccessMemory(Proc *proc, Cache *cache, int address, VMStats *stats,
+                     PerfStats *ps) {
     int vPage = address / PAGE_SIZE;
     int offset = address % PAGE_SIZE;
     stats->mapped++;
@@ -89,7 +93,7 @@ int vmemAccessMemory(Proc *proc, Cache *cache, int address, VMStats *stats) {
 
     int physPage = lookupPage(proc, vPage);
     if (physPage == -1) {
-        physPage = mapPage(proc, cache, vPage, stats);
+        physPage = mapPage(proc, cache, vPage, stats, ps);
         if (physPage == -1)
             return -1;
     } else {

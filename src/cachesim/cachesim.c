@@ -2,7 +2,9 @@
 #include "../instructions/address.h"
 #include "../lib/types/cache.h"
 #include "../memorymanagement/memorymanagement.h"
+#include "../performance/performance.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,8 +17,7 @@ CacheSet CacheSet_init(Cache *cache, Address index) {
 }
 
 CacheBlock CacheBlock_init(Cache *cache, AddrParts addr_parts) {
-    CacheBlock block = addr_parts.tag.addr;
-    return block;
+    return addr_parts.tag.addr;
 }
 
 Cache Cache_init(CacheValues c_info, ReplacementPolicy rp) {
@@ -70,7 +71,7 @@ void Cache_replace_block(Cache *cache, CacheSet *set, CacheBlock block) {
     }
 };
 
-void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
+bool Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
     cache->stat.accesses++;
 
     CacheBlock block;
@@ -82,7 +83,7 @@ void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
         if (block == addr_block) {
             // Hit!
             cache->stat.hits++;
-            return;
+            return true;
         }
 
         if (!block) {
@@ -93,7 +94,7 @@ void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
             // Compulsory miss
             cache->stat.misses.compulsory++;
             set->blocks[offset] = addr_block;
-            return;
+            return false;
         }
     }
 
@@ -101,9 +102,11 @@ void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
     // didn't get a hit, then we have a conflict.
     cache->stat.misses.conflict++;
     Cache_replace_block(cache, set, addr_block);
+    return false;
 }
 
-void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
+void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len,
+                       PerfStats *ps) {
     cache->stat.addresses++;
     unsigned int block_size_bytes = 1 << cache->info.offsetBits;
 
@@ -112,12 +115,16 @@ void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
             get_addr_parts(addr, cache->info.tagBits, cache->info.indexBits,
                            cache->info.offsetBits);
 
-        Cache_handle_lookup(cache, addr_parts);
-
-        unsigned int bytes_remaining_in_block =
-            block_size_bytes - addr_parts.offset.addr;
+        unsigned int offset_addr = block_size_bytes - addr_parts.offset.addr;
         unsigned int bytes_to_process =
-            (len < bytes_remaining_in_block) ? len : bytes_remaining_in_block;
+            (len <= offset_addr) ? len : offset_addr;
+
+        bool hit = Cache_handle_lookup(cache, addr_parts);
+
+        perf_recordCacheLookup(ps, hit, bytes_to_process, len);
+
+        if (len <= offset_addr)
+            break;
         len -= bytes_to_process;
         addr += bytes_to_process;
     };
@@ -130,17 +137,20 @@ void Cache_invalidate_pte(Cache *cache, PTE pte) {
 
     int page = pte * PAGE_SIZE;
     int block_size_bytes = 1 << cache->info.offsetBits;
-    for (int offset = 0; offset < PAGE_SIZE; offset += block_size_bytes) {
-        Address addr = page + offset;
+    AddrParts stuff =
+        get_addr_parts(page, cache->info.tagBits, cache->info.indexBits,
+                       cache->info.offsetBits);
+    for (int offset = 0; offset < VIR_SPACE; offset += block_size_bytes - 1) {
+        Address addr = offset;
         AddrParts parts =
-            get_addr_parts(addr, cache->info.tagBits, cache->info.indexBits,
-                           cache->info.offsetBits);
+            get_addr_parts(page + offset, cache->info.tagBits,
+                           cache->info.indexBits, cache->info.offsetBits);
         CacheSet *set = &cache->sets[parts.index.addr];
         for (unsigned int blk_off = 0; blk_off < cache->info.associativity;
              blk_off++) {
             CacheBlock *block = &set->blocks[blk_off];
-            if (*block != 0) {
-                block[blk_off] = 0;
+            if (*block == parts.tag.addr) {
+                block[blk_off] = CacheBlock_init(cache, parts);
             }
         }
     }

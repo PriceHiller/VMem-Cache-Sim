@@ -5,6 +5,7 @@
 #include "../instructions/inst.h"
 #include "../lib/types/cache.h"
 #include "../lib/types/types.h"
+#include "../performance/performance.h"
 
 #define PAGE_SIZE 4096
 #define VIR_SPACE 524288
@@ -44,7 +45,8 @@ typedef struct {
 void initPhysMem(Byte physMemMB, int osPercent, VMStats *stats);
 void freePhysMem();
 void initProc(Proc *proc);
-int vmemAccessMemory(Proc *proc, Cache *cache, int address, VMStats *stats);
+int vmemAccessMemory(Proc *proc, Cache *cache, int address, VMStats *stats,
+                     PerfStats *ps);
 int lookupPage(Proc *proc, int vPage);
 int count_used_pte_entries(PTE *table);
 void unmapPage(Proc *proc, int page);

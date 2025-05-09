@@ -1,12 +1,12 @@
 #include "cachecalculator/cachecalculator.h"
 #include "cachesim/cachesim.h"
 #include "cmdline/parser.h"
-#include "instructions/address.h"
 #include "instructions/reader.h"
 #include "lib/types/cache.h"
 #include "lib/types/physicalmemory.h"
 #include "memorymanagement/memorymanagement.h"
 #include "output/output.h"
+#include "performance/performance.h"
 #include "physmemcalc/physmemcalc.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +67,8 @@ int main(int argc, char *argv[]) {
 
     unsigned int proc_num = 0;
     bool procs_finished = false;
+    PerfStats ps;
+    perf_init(&ps);
 
     while (!procs_finished) {
         PageTableProcess *ptp = &proc_ptps[proc_num];
@@ -80,7 +82,7 @@ int main(int argc, char *argv[]) {
             //
             // We need to evict its tracked pages from the cache.
             if (proc->instructions.ip >= proc->instructions.count) {
-                for (int i = 0; i < proc->pageTableCount; i++) {
+                for (int i = 0; i < VIR_SPACE; i++) {
                     PTE pte = proc->pageTable[i];
                     int page = pte;
                     unmapPage(proc, pte);
@@ -92,26 +94,30 @@ int main(int argc, char *argv[]) {
             Instruction inst = proc->instructions.items[proc->instructions.ip];
             proc->instructions.ip += 1;
 
-            int addr = vmemAccessMemory(proc, &cache, inst.start, &vm_stats);
+            int addr =
+                vmemAccessMemory(proc, &cache, inst.start, &vm_stats, &ps);
             if (addr != -1) {
                 inst_bytes += inst.len;
-                Cache_lookup_addr(&cache, addr, inst.len);
+                perf_recordInstrStart(&ps, inst.len);
+                Cache_lookup_addr(&cache, addr, inst.len, &ps);
             }
 
             if (inst.source.valid) {
                 int source_addr = vmemAccessMemory(
-                    proc, &cache, inst.source.address, &vm_stats);
+                    proc, &cache, inst.source.address, &vm_stats, &ps);
                 if (source_addr != -1) {
-                    Cache_lookup_addr(&cache, source_addr, 4);
+                    ps.totalCycles += 1;
+                    Cache_lookup_addr(&cache, source_addr, 4, &ps);
                     src_dst_bytes += 4;
                 }
             }
 
             if (inst.dest.valid) {
-                int dest_addr = vmemAccessMemory(proc, &cache,
-                                                 inst.dest.address, &vm_stats);
+                int dest_addr = vmemAccessMemory(
+                    proc, &cache, inst.dest.address, &vm_stats, &ps);
                 if (dest_addr != -1) {
-                    Cache_lookup_addr(&cache, dest_addr, 4);
+                    ps.totalCycles += 1;
+                    Cache_lookup_addr(&cache, dest_addr, 4, &ps);
                     src_dst_bytes += 4;
                 }
             }
@@ -148,18 +154,28 @@ int main(int argc, char *argv[]) {
                                  .pageTableProcesses = proc_ptps,
                                  .processCt = proc_count};
     char *virtual_mem_str = VirtualMemory_to_string(&testStats);
-    printf("\n%s\n", virtual_mem_str);
+    CacheAccess access = {.totalCacheAccesses = cache.stat.accesses,
+                          .totalRowsAccessed = cache.stat.accesses,
+                          .eipBytes = inst_bytes,
+                          .srcDstBytes = src_dst_bytes,
+                          .totalAddresses = cache.stat.addresses};
+    char *cache_sim_str =
+        CacheSimulation_to_string(&access, &ps, &cache, &InputParams);
+    printf("%s\n", cache_sim_str);
+    // printf("\n%s\n", virtual_mem_str);
+    //
+    // printf("***** CACHE SIMULATION RESULTS  *****\n\n");
+    // printf("Total Cache Accesses:           %d  (%d addresses)\n",
+    //        cache.stat.accesses, cache.stat.addresses);
+    // printf("--- Instruction Bytes:          %lu\n", inst_bytes);
+    // printf("--- SrcDst Bytes:               %lu\n", src_dst_bytes);
+    // printf("Cache Hits:                     %d\n", cache.stat.hits);
+    // printf("Cache Misses:                   %d\n",
+    //        cache.stat.misses.compulsory + cache.stat.misses.conflict);
+    // printf("--- Compulsory Misses:          %d\n",
+    //        cache.stat.misses.compulsory);
+    // printf("--- Conflict Misses:            %d\n",
+    // cache.stat.misses.conflict);
 
-    printf("***** CACHE SIMULATION RESULTS  *****\n\n");
-    printf("Total Cache Accesses:           %d  (%d addresses)\n",
-           cache.stat.accesses, cache.stat.addresses);
-    printf("--- Instruction Bytes:          %lu\n", inst_bytes);
-    printf("--- SrcDst Bytes:               %lu\n", src_dst_bytes);
-    printf("Cache Hits:                     %d\n", cache.stat.hits);
-    printf("Cache Misses:                   %d\n",
-           cache.stat.misses.compulsory + cache.stat.misses.conflict);
-    printf("--- Compulsory Misses:          %d\n",
-           cache.stat.misses.compulsory);
-    printf("--- Conflict Misses:            %d\n", cache.stat.misses.conflict);
     return EXIT_SUCCESS;
 }

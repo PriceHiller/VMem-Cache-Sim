@@ -18,8 +18,9 @@ int calculateTagSize(Byte physMem, int indexSize, int offsetSize) {
     return log2f(physMem) - indexSize - offsetSize;
 }
 
+int calculateOverheadPerBlock(int tagSize) { return ((1 + tagSize)); }
 int calculateOverheadSize(int numBlocks, int tagSize) {
-    int overhead = numBlocks * (1 + tagSize);
+    int overhead = numBlocks * calculateOverheadPerBlock(tagSize);
     return overhead / 8;
 }
 
@@ -49,6 +50,7 @@ CacheValues Cache_calculate_values(Byte cache_size_bytes, Byte block_size_bytes,
     cv.offsetBits = offsetSize;
     cv.tagBits = tagSize;
     cv.overheadSize = overheadSize;
+    cv.overheadBitsPerBlock = calculateOverheadPerBlock(tagSize);
     cv.memorySize = implementMemorySize;
     cv.costPerKb = COST_PER_KB;
     cv.cost = cost;
