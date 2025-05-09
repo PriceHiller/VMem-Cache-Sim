@@ -43,11 +43,7 @@ typedef struct {
     double costPerKb;
 } CacheValues;
 
-typedef struct {
-    Address index;
-    Address tag;
-    bool valid;
-} CacheBlock;
+typedef Address CacheBlock;
 
 typedef struct {
     Address index;

@@ -65,31 +65,42 @@ int main(int argc, char *argv[]) {
         proc_ptps[i] = new_process;
     }
 
-    unsigned int ptp_num = 0;
+    unsigned int proc_num = 0;
     bool procs_finished = false;
+
     while (!procs_finished) {
-        PageTableProcess *ptp = &proc_ptps[ptp_num];
+        PageTableProcess *ptp = &proc_ptps[proc_num];
+        Proc *proc = &ptp->proc;
         VMStats last_vm_stats;
         memcpy(&last_vm_stats, &vm_stats, sizeof(vm_stats));
 
-        Proc *proc = &ptp->proc;
-
         for (int i = 0; i < InputParams.instructionsPerTimeSlice; i++) {
+            // If an instruction pointer is at the number of actual instructions
+            // we have, then we have reached the end of a process's execution.
+            //
+            // We need to evict its tracked pages from the cache.
             if (proc->instructions.ip >= proc->instructions.count) {
+                for (int i = 0; i < proc->pageTableCount; i++) {
+                    PTE pte = proc->pageTable[i];
+                    int page = pte;
+                    unmapPage(proc, pte);
+                    Cache_invalidate_pte(&cache, pte);
+                }
                 break;
             }
+
             Instruction inst = proc->instructions.items[proc->instructions.ip];
             proc->instructions.ip += 1;
 
-            int addr = vmemAccessMemory(proc, inst.start, &vm_stats);
+            int addr = vmemAccessMemory(proc, &cache, inst.start, &vm_stats);
             if (addr != -1) {
                 inst_bytes += inst.len;
                 Cache_lookup_addr(&cache, addr, inst.len);
             }
 
             if (inst.source.valid) {
-                int source_addr =
-                    vmemAccessMemory(proc, inst.source.address, &vm_stats);
+                int source_addr = vmemAccessMemory(
+                    proc, &cache, inst.source.address, &vm_stats);
                 if (source_addr != -1) {
                     Cache_lookup_addr(&cache, source_addr, 4);
                     src_dst_bytes += 4;
@@ -97,8 +108,8 @@ int main(int argc, char *argv[]) {
             }
 
             if (inst.dest.valid) {
-                int dest_addr =
-                    vmemAccessMemory(proc, inst.dest.address, &vm_stats);
+                int dest_addr = vmemAccessMemory(proc, &cache,
+                                                 inst.dest.address, &vm_stats);
                 if (dest_addr != -1) {
                     Cache_lookup_addr(&cache, dest_addr, 4);
                     src_dst_bytes += 4;
@@ -116,17 +127,13 @@ int main(int argc, char *argv[]) {
                                 physical_memory.pageTableEntryBits) /
                                8;
 
-        ptp_num++;
-        if (ptp_num >= proc_count) {
-            ptp_num = 0;
-        }
-
-        for (unsigned int proc_num = 0; proc_num < proc_count; proc_num++) {
-            Proc *check_proc = &proc_ptps[proc_num].proc;
-            if (check_proc->instructions.count == check_proc->instructions.ip) {
-                procs_finished = true;
-            } else {
+        procs_finished = true;
+        for (int i = 0; i < proc_count; i++) {
+            proc_num = (proc_num + 1) % proc_count;
+            ptp = &proc_ptps[proc_num];
+            if (ptp->proc.instructions.ip < ptp->proc.instructions.count) {
                 procs_finished = false;
+                break;
             }
         }
     }

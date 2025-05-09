@@ -1,6 +1,7 @@
 #include "cachesim.h"
 #include "../instructions/address.h"
 #include "../lib/types/cache.h"
+#include "../memorymanagement/memorymanagement.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,12 +13,9 @@ CacheSet CacheSet_init(Cache *cache, Address index) {
                                                    sizeof(CacheBlock))};
     return set;
 }
+
 CacheBlock CacheBlock_init(Cache *cache, AddrParts addr_parts) {
-    CacheBlock block = {
-        .index = addr_parts.index.addr,
-        .tag = addr_parts.tag.addr,
-        .valid = false,
-    };
+    CacheBlock block = addr_parts.tag.addr;
     return block;
 }
 
@@ -51,28 +49,23 @@ void Cache_free(Cache *cache) {
     }
 }
 
-void Cache_replace_round_robin(Cache *cache, CacheBlock block) {
-    CacheSet *set = &cache->sets[block.index];
+void Cache_replace_round_robin(Cache *cache, CacheSet *set, CacheBlock block) {
     set->blocks[set->next_block_rp] = block;
-    set->next_block_rp++;
-    if (set->next_block_rp == cache->info.associativity) {
-        set->next_block_rp = 0;
-    }
+    set->next_block_rp = (set->next_block_rp + 1) % cache->info.associativity;
 }
 
-void Cache_replace_random(Cache *cache, CacheBlock block) {
-    cache->sets[block.index].blocks[(rand() % cache->info.associativity)] =
-        block;
+void Cache_replace_random(Cache *cache, CacheSet *set, CacheBlock block) {
+    set->blocks[(rand() % cache->info.associativity)] = block;
 }
 
-void Cache_replace_block(Cache *cache, CacheBlock block) {
+void Cache_replace_block(Cache *cache, CacheSet *set, CacheBlock block) {
     switch (cache->rp) {
     case RP_ROUND_ROBIN:
-        Cache_replace_round_robin(cache, block);
+        Cache_replace_round_robin(cache, set, block);
         break;
     case RP_RANDOM:
     case RP_UNKNOWN:
-        Cache_replace_random(cache, block);
+        Cache_replace_random(cache, set, block);
         break;
     }
 };
@@ -86,20 +79,19 @@ void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
     for (unsigned int offset = 0; offset < cache->info.associativity;
          offset++) {
         block = set->blocks[offset];
-        if (block.valid && block.tag == addr_block.tag) {
+        if (block == addr_block) {
             // Hit!
             cache->stat.hits++;
             return;
         }
 
-        if (!block.valid) {
+        if (!block) {
             // We have an empty location to place the block, and we haven't
             // touched this block yet since we started lookuping up blocks in
             // our cache
             //
             // Compulsory miss
             cache->stat.misses.compulsory++;
-            addr_block.valid = true;
             set->blocks[offset] = addr_block;
             return;
         }
@@ -108,8 +100,7 @@ void Cache_handle_lookup(Cache *cache, AddrParts addr_parts) {
     // If we didn't find an empty location in the set for the address and we
     // didn't get a hit, then we have a conflict.
     cache->stat.misses.conflict++;
-    addr_block.valid = true;
-    Cache_replace_block(cache, addr_block);
+    Cache_replace_block(cache, set, addr_block);
 }
 
 void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
@@ -124,10 +115,33 @@ void Cache_lookup_addr(Cache *cache, Address addr, unsigned int len) {
         Cache_handle_lookup(cache, addr_parts);
 
         unsigned int bytes_remaining_in_block =
-            block_size_bytes;
+            block_size_bytes - addr_parts.offset.addr;
         unsigned int bytes_to_process =
-            (len < bytes_remaining_in_block + 1) ? len : bytes_remaining_in_block;
+            (len < bytes_remaining_in_block) ? len : bytes_remaining_in_block;
         len -= bytes_to_process;
         addr += bytes_to_process;
     };
+}
+
+void Cache_invalidate_pte(Cache *cache, PTE pte) {
+    if (!pte) {
+        return;
+    }
+
+    int page = pte * PAGE_SIZE;
+    int block_size_bytes = 1 << cache->info.offsetBits;
+    for (int offset = 0; offset < PAGE_SIZE; offset += block_size_bytes) {
+        Address addr = page + offset;
+        AddrParts parts =
+            get_addr_parts(addr, cache->info.tagBits, cache->info.indexBits,
+                           cache->info.offsetBits);
+        CacheSet *set = &cache->sets[parts.index.addr];
+        for (unsigned int blk_off = 0; blk_off < cache->info.associativity;
+             blk_off++) {
+            CacheBlock *block = &set->blocks[blk_off];
+            if (*block != 0) {
+                block[blk_off] = 0;
+            }
+        }
+    }
 }
